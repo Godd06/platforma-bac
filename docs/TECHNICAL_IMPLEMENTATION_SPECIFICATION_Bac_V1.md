@@ -624,15 +624,33 @@ media
 
 # 18. RLS / security model
 
-## Public
+### Content Discovery & Access Model
+
+The security model separates **Discovery (Metadata)** from **Content Access (Lesson Blocks & Media)**:
+
+## Public & Non-PRO Users
 
 Can read:
 - published subjects;
 - published chapters;
-- published lesson metadata;
-- published FREE lesson content.
+- published lesson **metadata** for ALL published lessons (both `free` and `pro` access levels: `id`, `chapter_id`, `slug`, `title`, `short_description`, `estimated_minutes`, `access_level`, `cover_media_id`, `sort_order`, `status`);
+- `lesson_blocks` and media for published **FREE** lessons only.
 
-PRO content requires authenticated subscription validation.
+Cannot read:
+- `lesson_blocks` for `pro` lessons (enforced strictly by database RLS via `private.is_pro_user(auth.uid())`);
+- `media` objects associated with PRO content;
+- unpublished lessons (`draft`, `review`, `archived`).
+
+Behavior on `/lesson/:lessonId`:
+- Non-PRO opening a PRO lesson receives lesson metadata from database, but `lesson_blocks` query returns 0 rows due to RLS.
+- UI renders **PRO Gate / Upgrade CTA** instead of 404.
+- 404 is reserved strictly for non-existent lesson IDs in database.
+
+## PRO Users
+
+Can read:
+- all published metadata;
+- `lesson_blocks` and media for both `free` and `pro` published lessons.
 
 ## Student
 
@@ -727,9 +745,7 @@ Actual access must also be enforced by backend/database policies.
 ├── pro
 ├── dashboard
 ├── catalog
-│   ├── :subject
-│   │   └── :chapter
-│   └── ...
+│   └── :subject
 ├── lesson
 │   └── :lessonId
 └── settings
@@ -772,23 +788,45 @@ Do not make six independent blocking requests if data can be aggregated efficien
 
 # 24. Catalog data requirements
 
-Catalog needs:
+## 24.1. Structură & Mapping Data (Română)
 
-- published subjects;
-- chapter counts;
-- lesson counts;
-- access information;
-- search.
-
-Search MVP:
-
+Ierarhia de conținut din baza de date:
 ```text
-subjects
-chapters
-lessons
+Subject (Limba și literatura română)
+ └── Chapter = Operă literară
+      └── Lesson = Tip de eseu / lecție
 ```
 
-Search later can be upgraded to PostgreSQL full-text search.
+### Compoziție Titlu și Subtitlu Operă (Chapter)
+
+Datele operei sunt stocate în tabela `chapters`:
+- `title`: Titlul operei (ex: `Moara cu noroc`)
+- `metadata.author`: Autorul operei (ex: `Ioan Slavici`)
+- `metadata.work_type`: Specia sau tipul operei (ex: `Nuvela psihologică`)
+
+Formula de compoziție vizuală în UI:
+```ts
+const displayTitle = chapter.metadata?.author
+  ? `${chapter.title} — ${chapter.metadata.author}`
+  : chapter.title;
+
+const displaySubtitle = chapter.metadata?.work_type || chapter.short_description || '';
+```
+
+## 24.2. Catalog UX & Expandable Accordion
+
+- Pagina `/catalog/:subject` (ex: `/catalog/romana`) încarcă materia, toate capitolele (operele) și toate lecțiile aferente într-o singură pagină.
+- Fiecare operă (Chapter) se randează ca o secțiune Expandable (Accordion):
+  - **Collapsed (default)**: Afișează `displayTitle`, `displaySubtitle` și indicatorul Chevron. Lecțiile rămân ascunse.
+  - **Expanded**: Afișează lista de lecții atașate (`lessons`), fiecare având titlul, timpul estimat și badge-ul `FREE` sau `PRO 🔒`.
+- Click pe lecție efectuează navigare directă către `/lesson/:lessonId`.
+- `/catalog/:subject/:chapter` NU este o rută de produs necesară.
+
+## 24.3. Cerințe de Interogare Catalog
+- `published` subjects;
+- `published` chapters (opere) cu `metadata` (`author`, `work_type`);
+- `published` lessons metadata (selectând DOAR câmpurile aprobate: `id, chapter_id, slug, title, short_description, estimated_minutes, access_level, cover_media_id, sort_order, status`);
+- discovery permis atât pentru lecțiile `FREE` cât și `PRO 🔒`.
 
 ---
 

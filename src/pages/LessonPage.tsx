@@ -14,6 +14,7 @@ import {
 
 import { fetchLessonWithBlocks, type LessonFetchResult } from '@/services/lessonService'
 import { LessonBlockRenderer } from '@/components/lesson/LessonBlockRenderer'
+import { ProGateBanner } from '@/components/lesson/ProGateBanner'
 
 export const LessonPage: React.FC = () => {
   const { lessonId } = useParams<{ lessonId: string }>()
@@ -38,35 +39,29 @@ export const LessonPage: React.FC = () => {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto space-y-6 animate-pulse p-4 sm:p-6">
-        {/* Breadcrumb skeleton */}
         <div className="h-4 bg-border/60 rounded w-48" />
-
-        {/* Header skeleton */}
         <div className="space-y-3 p-6 rounded-2xl bg-surface border border-border">
           <div className="h-8 bg-border/60 rounded w-3/4" />
           <div className="h-4 bg-border/40 rounded w-1/2" />
         </div>
-
-        {/* Blocks skeleton */}
         <div className="space-y-4 pt-4">
           <div className="h-6 bg-border/40 rounded w-1/3" />
           <div className="h-20 bg-border/30 rounded-xl" />
           <div className="h-16 bg-border/30 rounded-xl" />
-          <div className="h-28 bg-border/30 rounded-xl" />
         </div>
       </div>
     )
   }
 
-  // 2. Not Found State
-  if (!data || data.errorType === 'NOT_FOUND' || !data.lesson) {
+  // 2. Rule 2 State: NOT_FOUND (404 UI)
+  if (!data || data.accessState === 'NOT_FOUND' || !data.lesson) {
     return (
       <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-5">
         <div className="w-16 h-16 rounded-2xl bg-surface border border-border flex items-center justify-center mx-auto text-text-muted">
           <FileQuestion className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-text">Lecția nu a fost găsită</h2>
+          <h2 className="text-2xl font-bold text-text">Lecția nu a fost găsită (404)</h2>
           <p className="text-sm text-text-muted max-w-md mx-auto">
             {data?.errorMessage || 'Lecția pe care o cauți nu există sau a fost mutată.'}
           </p>
@@ -84,19 +79,17 @@ export const LessonPage: React.FC = () => {
     )
   }
 
-  // 3. Error / RLS Access Denied State
-  if (data.errorType === 'FORBIDDEN' || data.errorType === 'FETCH_ERROR') {
+  // 3. Rule 2 State: ERROR (Error UI)
+  if (data.accessState === 'ERROR') {
     return (
       <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-5">
         <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mx-auto text-amber-500">
           <AlertCircle className="w-8 h-8" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold text-text">
-            {data.errorType === 'FORBIDDEN' ? 'Acces Restricționat' : 'Eroare la încărcarea lecției'}
-          </h2>
+          <h2 className="text-2xl font-bold text-text">Eroare la încărcarea lecției</h2>
           <p className="text-sm text-text-muted max-w-md mx-auto">
-            {data.errorMessage || 'Nu s-au putut încărca datele lecției.'}
+            {data.errorMessage || 'Nu s-au putut încărca datele din baza de date.'}
           </p>
         </div>
         <div className="flex items-center justify-center gap-3 pt-2">
@@ -118,11 +111,12 @@ export const LessonPage: React.FC = () => {
     )
   }
 
-  const { lesson, blocks, subject, chapter, prevLesson, nextLesson } = data
+  const { lesson, blocks, subject, chapter, prevLesson, nextLesson, accessState } = data
+  const isProRequired = accessState === 'PRO_REQUIRED'
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16 px-4 sm:px-6">
-      {/* Top Bar Navigation & Breadcrumbs */}
+      {/* Top Navigation & Breadcrumbs */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
         <button
           onClick={() => navigate('/catalog')}
@@ -132,7 +126,6 @@ export const LessonPage: React.FC = () => {
           Înapoi la Catalog
         </button>
 
-        {/* Breadcrumb Trail */}
         <nav className="flex items-center gap-2 text-xs text-text-muted">
           <Link to="/catalog" className="hover:underline">
             Catalog
@@ -152,7 +145,7 @@ export const LessonPage: React.FC = () => {
         </nav>
       </div>
 
-      {/* Lesson Header Banner */}
+      {/* Lesson Header Banner (Always visible for Discovery) */}
       <header className="rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary">
@@ -175,7 +168,7 @@ export const LessonPage: React.FC = () => {
             }`}
           >
             {lesson.access_level === 'pro' && <Lock className="w-3 h-3" />}
-            {lesson.access_level === 'pro' ? 'Acces PRO' : 'Gratuit'}
+            {lesson.access_level === 'pro' ? 'Acces PRO 🔒' : 'Gratuit'}
           </span>
         </div>
 
@@ -190,21 +183,25 @@ export const LessonPage: React.FC = () => {
         )}
       </header>
 
-      {/* Lesson Blocks Content List */}
+      {/* Content Area: Either PRO Gate or Lesson Blocks */}
       <main className="space-y-6">
-        {blocks.length === 0 ? (
+        {isProRequired ? (
+          /* Rule 2: PRO + non-PRO -> Metadata + PRO Gate (no blocks, no 404) */
+          <ProGateBanner lessonTitle={lesson.title} />
+        ) : blocks.length === 0 ? (
+          /* Rule 2: FREE/ACCESSIBLE but empty blocks */
           <div className="py-12 text-center border border-dashed border-border rounded-2xl bg-surface p-6 text-text-muted space-y-2">
             <p className="text-base font-medium">Această lecție nu conține blocuri de conținut încă.</p>
-            <p className="text-xs">Re-treceți mai târziu sau contactați editorii.</p>
           </div>
         ) : (
+          /* Rule 2: ACCESSIBLE -> Metadata + Blocks */
           blocks.map((block) => (
             <LessonBlockRenderer key={block.id} block={block} />
           ))
         )}
       </main>
 
-      {/* Bottom Navigation (Prev / Catalog / Next) */}
+      {/* Footer Navigation */}
       <footer className="pt-8 border-t border-border flex flex-wrap items-center justify-between gap-4">
         {prevLesson ? (
           <Link

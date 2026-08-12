@@ -2,6 +2,9 @@ import { supabase } from '@/lib/supabase'
 import type { Lesson, Chapter, Subject } from '@/types/database'
 import type { LessonBlockData } from '@/types/blocks'
 
+// Exact access states required by Rule 2
+export type LessonAccessState = 'NOT_FOUND' | 'PRO_REQUIRED' | 'ACCESSIBLE' | 'ERROR'
+
 export interface LessonFetchResult {
   lesson: Lesson | null
   blocks: LessonBlockData[]
@@ -9,13 +12,17 @@ export interface LessonFetchResult {
   subject: Subject | null
   prevLesson: { id: string; title: string } | null
   nextLesson: { id: string; title: string } | null
-  errorType: 'NONE' | 'NOT_FOUND' | 'FORBIDDEN' | 'FETCH_ERROR'
+  accessState: LessonAccessState
   errorMessage: string | null
 }
 
+// Approved discovery fields list for single lesson query
+const APPROVED_LESSON_FIELDS =
+  'id, chapter_id, slug, title, short_description, estimated_minutes, access_level, cover_media_id, sort_order, status, published_at, created_at, updated_at'
+
 /**
- * Service function to fetch a lesson and its blocks in strict sort_order ASC from Supabase.
- * Respects RLS and handles errors gracefully.
+ * Service function to fetch a single lesson and its blocks from Supabase.
+ * Strictly implements Rule 2 access states: NOT_FOUND, PRO_REQUIRED, ACCESSIBLE, ERROR.
  */
 export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFetchResult> {
   if (!lessonId || typeof lessonId !== 'string') {
@@ -26,35 +33,21 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       subject: null,
       prevLesson: null,
       nextLesson: null,
-      errorType: 'NOT_FOUND',
+      accessState: 'NOT_FOUND',
       errorMessage: 'ID-ul lecției nu este valid.',
     }
   }
 
   try {
-    // 1. Fetch lesson
+    // 1. Fetch lesson metadata (Discovery allowed for published lessons)
     const { data: rawLesson, error: lessonError } = await supabase
       .from('lessons')
-      .select('*')
+      .select(APPROVED_LESSON_FIELDS)
       .eq('id', lessonId)
       .maybeSingle()
 
     if (lessonError) {
       console.error('[lessonService] Supabase lesson fetch error:', lessonError)
-      const errStatus = (lessonError as unknown as { status?: number }).status
-      if (lessonError.code === '42501' || errStatus === 403 || errStatus === 401) {
-        return {
-          lesson: null,
-          blocks: [],
-          chapter: null,
-          subject: null,
-          prevLesson: null,
-          nextLesson: null,
-          errorType: 'FORBIDDEN',
-          errorMessage: 'Nu aveți permisiunea de a accesa această lecție (este necesar abonament PRO sau autentificare).',
-        }
-      }
-
       return {
         lesson: null,
         blocks: [],
@@ -62,13 +55,14 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
         subject: null,
         prevLesson: null,
         nextLesson: null,
-        errorType: 'FETCH_ERROR',
-        errorMessage: lessonError.message || 'Eroare la încărcarea lecției din baza de date.',
+        accessState: 'ERROR',
+        errorMessage: lessonError.message || 'Eroare la conectarea cu baza de date.',
       }
     }
 
     const lesson = rawLesson as Lesson | null
 
+    // If lesson metadata does not exist in DB -> NOT_FOUND (404)
     if (!lesson) {
       return {
         lesson: null,
@@ -77,23 +71,12 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
         subject: null,
         prevLesson: null,
         nextLesson: null,
-        errorType: 'NOT_FOUND',
+        accessState: 'NOT_FOUND',
         errorMessage: 'Lecția solicitată nu a fost găsită sau este indisponibilă.',
       }
     }
 
-    // 2. Fetch lesson blocks ordered by sort_order ASC
-    const { data: blocksData, error: blocksError } = await supabase
-      .from('lesson_blocks')
-      .select('*')
-      .eq('lesson_id', lessonId)
-      .order('sort_order', { ascending: true })
-
-    if (blocksError) {
-      console.warn('[lessonService] Could not load lesson blocks:', blocksError)
-    }
-
-    // 3. Fetch parent chapter & subject metadata
+    // 2. Fetch parent chapter & subject metadata
     let chapter: Chapter | null = null
     let subject: Subject | null = null
     let prevLesson: { id: string; title: string } | null = null
@@ -144,14 +127,40 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       }
     }
 
+    // 3. Attempt to fetch lesson blocks (RLS enforced)
+    const { data: blocksData, error: blocksError } = await supabase
+      .from('lesson_blocks')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .order('sort_order', { ascending: true })
+
+    const blocks = (blocksData as LessonBlockData[]) || []
+
+    // 4. Determine Rule 2 Access State:
+    // - FREE lesson -> ACCESSIBLE (blocks returned)
+    // - PRO lesson + non-PRO user (blocks count = 0 or RLS error) -> PRO_REQUIRED (metadata + PRO Gate)
+    // - PRO lesson + PRO user (blocks returned > 0) -> ACCESSIBLE
+    if (lesson.access_level === 'pro' && (blocks.length === 0 || blocksError)) {
+      return {
+        lesson,
+        blocks: [],
+        chapter,
+        subject,
+        prevLesson,
+        nextLesson,
+        accessState: 'PRO_REQUIRED',
+        errorMessage: null,
+      }
+    }
+
     return {
       lesson,
-      blocks: (blocksData as LessonBlockData[]) || [],
+      blocks,
       chapter,
       subject,
       prevLesson,
       nextLesson,
-      errorType: 'NONE',
+      accessState: 'ACCESSIBLE',
       errorMessage: null,
     }
   } catch (err) {
@@ -163,7 +172,7 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       subject: null,
       prevLesson: null,
       nextLesson: null,
-      errorType: 'FETCH_ERROR',
+      accessState: 'ERROR',
       errorMessage: 'A apărut o eroare neașteptată la conectarea cu serverul.',
     }
   }

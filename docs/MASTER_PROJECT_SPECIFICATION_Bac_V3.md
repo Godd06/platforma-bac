@@ -79,7 +79,6 @@ Aplicația nu trebuie proiectată astfel încât să depindă permanent de un si
 - `/dashboard`
 - `/catalog`
 - `/catalog/:subject`
-- `/catalog/:subject/:chapter`
 - `/lesson/:lessonId`
 - `/settings`
 
@@ -187,6 +186,24 @@ Pentru Română, un „Chapter” poate reprezenta o operă.
 - review
 - published
 - archived
+
+### 4.1. Content Discovery & Access Model
+
+Modelul de securitate și acces la conținut separă strict **Descoperirea (Discovery)** de **Accesul la Conținut (Content Access)**:
+
+1. **Visibility / Discovery (Descoperire)**:
+   - Toate lecțiile cu `status = 'published'` sunt complet descoperibile în Catalog, indiferent dacă au `access_level = 'free'` sau `access_level = 'pro'`.
+   - Metadata lecțiilor publicate (`id`, `chapter_id`, `slug`, `title`, `short_description`, `estimated_minutes`, `access_level`, `cover_media_id`, `sort_order`, `status`) este vizibilă public pentru a permite utilizatorilor non-PRO să exploreze structura materiei.
+
+2. **Content Access (Acces la Conținut & Blocurile de Lecție)**:
+   - Pentru o lecție `free`: `lesson_blocks` și resursele aferente pot fi citite de orice utilizator (anonim sau autentificat).
+   - Pentru o lecție `pro`:
+     - Utilizatorul **PRO**: Are acces deplin la `lesson_blocks` și fișierele media.
+     - Utilizatorul **non-PRO / anonim**:
+       - `lesson_blocks` sunt refuzate strict la nivel de bază de date de politicile RLS.
+       - Media PRO din Storage/tabela `media` rămâne inaccesibilă.
+       - La accesarea directă a URL-ului `/lesson/:lessonId`, aplicația încarcă metadata lecției și afișează un **PRO Gate / Upgrade CTA**, fără a genera eroare 404 (lecția există, dar conținutul este restricționat).
+       - Eroarea **404 Not Found** este rezervată strict pentru ID-uri de lecție inexistente în baza de date.
 
 ---
 
@@ -631,22 +648,78 @@ Nu creăm o pagină separată de profil.
 
 # 20. Catalog UX
 
-Header:
-- titlu
-- search
+## 20.1. Structură & Ierarhie (Română)
 
-Sub:
-- subject cards
+Pentru Limba și literatura română, ierarhia de conținut este:
 
-Search-ul filtrează în aceeași pagină.
+```text
+Subject (Limba și literatura română)
+ └── Chapter = Operă (ex: Moara cu noroc — Ioan Slavici)
+      └── Lesson = tip de eseu / lecție (ex: Particularitățile operei)
+```
 
-Filtrare conceptuală:
-- toate
-- materii
-- capitole
-- lecții
+`Subject` / `Chapter` / `Lesson` reprezintă structura de date, **NU** pagini separate obligatorii în frontend.
 
-Nu există `/search`.
+## 20.2. Model de Date Chapter (Titlu + Subtitlu Operă)
+
+Pentru capitolele care reprezintă opere literare, componentele vizuale compun titlul și subtitlul din schema `chapters`:
+
+- `chapters.title` = Titlul operei (ex: `Moara cu noroc`)
+- `chapters.metadata.author` = Autorul operei (ex: `Ioan Slavici`)
+- `chapters.metadata.work_type` = Specia / tipul operei (ex: `Nuvela psihologică`)
+
+Compunere Vizuală UI:
+- **Titlu Principal**: `chapter.title + ' — ' + metadata.author` (ex: `Moara cu noroc — Ioan Slavici`)
+- **Subtitlu**: `metadata.work_type` sau `chapter.short_description` (ex: `Nuvela psihologică`)
+
+## 20.3. Routing Oficial Catalog
+
+Rutele oficiale pentru studenți sunt:
+
+- `/catalog` -> Pagina principală cu lista de materii (`subjects`).
+- `/catalog/:subject` -> Pagina materiei selectate (ex: `/catalog/romana`), care afișează **pe aceeași pagină** toate operele și lecțiile lor.
+- `/lesson/:lessonId` -> Pagina unică de studiu/conținut a lecției.
+
+> [!NOTE]
+> Ruta `/catalog/:subject/:chapter` **NU** este o rută de produs. `Chapter` este o secțiune vizuală și un card Expandable în interiorul paginii `/catalog/:subject`.
+
+## 20.4. Model UX Expandable Card / Accordion
+
+Pe pagina `/catalog/:subject` (ex: `/catalog/romana`), fiecare operă este afișată ca un Card / Section Expandable (Accordion).
+
+### Starea Collapsed (Implicită)
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│ Moara cu noroc — Ioan Slavici                         ˅   │
+│ Nuvela psihologică                                         │
+└────────────────────────────────────────────────────────────┘
+```
+
+- Titlul operei + Autorul
+- Subtitlu cu specia / tipul operei
+- Chevron / indicator de extindere (`˅`)
+
+### Starea Expanded
+
+```text
+┌────────────────────────────────────────────────────────────┐
+│ Moara cu noroc — Ioan Slavici                         ˄   │
+│ Nuvela psihologică                                         │
+│                                                            │
+│ Particularitățile operei                          FREE     │
+│ Construcția unui personaj                         PRO 🔒   │
+│ Relația dintre două personaje                     PRO 🔒   │
+└────────────────────────────────────────────────────────────┘
+```
+
+### Reguli UI Accordion:
+- Lecțiile sunt **COLLAPSED** implicit pe pagină.
+- Click pe operă/card o extinde (EXPANDED), afișând lista de lecții.
+- Click din nou pe operă o restrânge (COLLAPSED).
+- Ideal o singură operă este expanded simultan (Single-expanded accordion) pentru claritate vizuală optimă.
+- Click pe o lecție navighează direct la `/lesson/:lessonId`.
+- Toate lecțiile `published` (atât `FREE` cât și `PRO 🔒`) sunt descoperibile în accordion.
 
 ---
 
