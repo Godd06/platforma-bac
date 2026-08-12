@@ -1,5 +1,6 @@
 import React from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import {
   LayoutDashboard,
   FolderTree,
@@ -9,10 +10,23 @@ import {
   CreditCard,
   BarChart3,
   Settings,
-  ShieldAlert
+  ShieldAlert,
+  LogOut
 } from 'lucide-react'
 
 export const AdminLayout: React.FC = () => {
+  const { signOut, user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('[AdminLayout] Error during sign out:', err)
+    }
+  }
+
   const adminNavItems = [
     { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/admin/content', label: 'Conținut', icon: FolderTree },
@@ -56,13 +70,21 @@ export const AdminLayout: React.FC = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-2">
           <Link
             to="/dashboard"
             className="block text-center text-xs text-text-muted hover:text-text transition-colors py-2 border border-border rounded-md"
           >
             ← Înapoi la platformă
           </Link>
+
+          <button
+            onClick={handleLogout}
+            className="w-full text-center text-xs text-red-400 hover:text-red-300 transition-colors py-2 border border-red-500/20 hover:border-red-500/40 rounded-md flex items-center justify-center gap-1.5"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Deconectare</span>
+          </button>
         </div>
       </aside>
 
@@ -70,6 +92,7 @@ export const AdminLayout: React.FC = () => {
       <div className="flex-1 flex flex-col">
         <header className="h-16 border-b border-border bg-surface/50 px-8 flex items-center justify-between">
           <h1 className="text-sm font-medium text-text-muted">Panou de Administrare</h1>
+          <span className="text-xs text-text-subtle font-mono">{user?.email}</span>
         </header>
         <main className="flex-1 p-8">
           <Outlet />

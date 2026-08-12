@@ -1,5 +1,9 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from '@/context/AuthContext'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { AdminProtectedRoute } from '@/components/auth/AdminProtectedRoute'
+
 import { PublicLayout } from '@/components/layout/PublicLayout'
 import { StudentLayout } from '@/components/layout/StudentLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
@@ -29,43 +33,50 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public Routes */}
-        <Route element={<PublicLayout />}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/pro" element={<ProUpgradePage />} />
-        </Route>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/pro" element={<ProUpgradePage />} />
+          </Route>
 
-        {/* Student Routes */}
-        <Route element={<StudentLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/catalog" element={<CatalogPage />} />
-          <Route path="/catalog/:subject" element={<SubjectPage />} />
-          <Route path="/catalog/:subject/:chapter" element={<ChapterPage />} />
-          <Route path="/lesson/:lessonId" element={<LessonPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-        </Route>
+          {/* Protected Student Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route element={<StudentLayout />}>
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/catalog/:subject" element={<SubjectPage />} />
+              <Route path="/catalog/:subject/:chapter" element={<ChapterPage />} />
+              <Route path="/lesson/:lessonId" element={<LessonPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+            </Route>
+          </Route>
 
-        {/* Admin Routes */}
-        <Route element={<AdminLayout />}>
-          <Route path="/admin" element={<AdminDashboardPage />} />
-          <Route path="/admin/content" element={<AdminContentPage />} />
-          <Route path="/admin/media" element={<AdminMediaPage />} />
-          <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
-          <Route path="/admin/users" element={<AdminUsersPage />} />
-          <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
-          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-          <Route path="/admin/settings" element={<AdminSettingsPage />} />
-        </Route>
+          {/* Protected Admin Routes */}
+          <Route element={<AdminProtectedRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/admin/content" element={<AdminContentPage />} />
+              <Route path="/admin/media" element={<AdminMediaPage />} />
+              <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
+              <Route path="/admin/users" element={<AdminUsersPage />} />
+              <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+              <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            </Route>
+          </Route>
 
-        {/* Catch-all 404 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Catch-all 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 
 export default App
+

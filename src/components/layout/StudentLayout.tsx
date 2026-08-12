@@ -1,8 +1,21 @@
 import React from 'react'
-import { Link, NavLink, Outlet } from 'react-router-dom'
-import { BookOpen, LayoutDashboard, Library, Settings, User } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+import { BookOpen, LayoutDashboard, Library, LogOut, Settings, User } from 'lucide-react'
 
 export const StudentLayout: React.FC = () => {
+  const { signOut, user } = useAuth()
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('[StudentLayout] Error during sign out:', err)
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-text">
       {/* Student Navigation Header */}
@@ -52,9 +65,20 @@ export const StudentLayout: React.FC = () => {
               <Settings className="w-5 h-5" />
             </Link>
 
-            <div className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent font-medium text-xs">
+            <div
+              className="w-8 h-8 rounded-full bg-accent/20 border border-accent/40 flex items-center justify-center text-accent font-medium text-xs"
+              title={user?.email || 'Profil'}
+            >
               <User className="w-4 h-4" />
             </div>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-text-muted hover:text-red-400 hover:bg-surface-hover transition-colors"
+              title="Deconectare"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </header>
