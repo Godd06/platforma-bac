@@ -1,5 +1,5 @@
 -- Migration: 20260812235000_security_hardening.sql
--- Description: Incremental security hardening with minimal table GRANTs and targeted test-data remediation for existing Supabase DB instance
+-- Description: Security hardening with indexes, explicit table RLS policies (replacing FOR ALL), reviewer role semantics, and storage policies
 
 -- 1. Ensure Private Schema & Usage Grants
 CREATE SCHEMA IF NOT EXISTS private;
@@ -114,16 +114,19 @@ CREATE TRIGGER validate_progress_block_lesson_trigger
   BEFORE INSERT OR UPDATE ON public.lesson_progress
   FOR EACH ROW EXECUTE FUNCTION private.validate_progress_block_lesson();
 
--- 3. Targeted Remediation for Negative Test Artifacts in user_streaks
-UPDATE public.user_streaks
-SET current_streak = 0
-WHERE current_streak < 0;
+-- 3. Additional Performance Indexes (Objective 7 compliance)
+CREATE INDEX IF NOT EXISTS idx_subjects_cover_media_id ON public.subjects(cover_media_id);
+CREATE INDEX IF NOT EXISTS idx_chapters_cover_media_id ON public.chapters(cover_media_id);
+CREATE INDEX IF NOT EXISTS idx_lessons_cover_media_id ON public.lessons(cover_media_id);
+CREATE INDEX IF NOT EXISTS idx_media_created_by ON public.media(created_by);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_lesson_id ON public.lesson_progress(lesson_id);
+CREATE INDEX IF NOT EXISTS idx_lesson_progress_last_block_id ON public.lesson_progress(last_block_id);
 
-UPDATE public.user_streaks
-SET longest_streak = 0
-WHERE longest_streak < 0;
+-- 4. Targeted Remediation for Negative Test Artifacts in user_streaks
+UPDATE public.user_streaks SET current_streak = 0 WHERE current_streak < 0;
+UPDATE public.user_streaks SET longest_streak = 0 WHERE longest_streak < 0;
 
--- 4. Idempotent Check Constraints on Existing Tables
+-- 5. Idempotent Check Constraints on Existing Tables
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'user_streaks_current_check') THEN
         ALTER TABLE public.user_streaks ADD CONSTRAINT user_streaks_current_check CHECK (current_streak >= 0);
@@ -148,7 +151,182 @@ DO $$ BEGIN
     END IF;
 END $$;
 
--- 5. Idempotent Storage Buckets & Policies
+-- 6. Explicit Table RLS Policies Replacing FOR ALL (Objective 7 & 8 Role Semantics)
+
+-- 6.1 subjects
+DROP POLICY IF EXISTS "subjects_select_policy" ON public.subjects;
+CREATE POLICY "subjects_select_policy" ON public.subjects
+  FOR SELECT TO anon, authenticated
+  USING (
+    is_published = true
+    OR private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'reviewer')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "subjects_insert_policy" ON public.subjects;
+CREATE POLICY "subjects_insert_policy" ON public.subjects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "subjects_update_policy" ON public.subjects;
+CREATE POLICY "subjects_update_policy" ON public.subjects
+  FOR UPDATE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "subjects_delete_policy" ON public.subjects;
+CREATE POLICY "subjects_delete_policy" ON public.subjects
+  FOR DELETE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+-- 6.2 chapters
+DROP POLICY IF EXISTS "chapters_select_policy" ON public.chapters;
+CREATE POLICY "chapters_select_policy" ON public.chapters
+  FOR SELECT TO anon, authenticated
+  USING (
+    is_published = true
+    OR private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'reviewer')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "chapters_insert_policy" ON public.chapters;
+CREATE POLICY "chapters_insert_policy" ON public.chapters
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "chapters_update_policy" ON public.chapters;
+CREATE POLICY "chapters_update_policy" ON public.chapters
+  FOR UPDATE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "chapters_delete_policy" ON public.chapters;
+CREATE POLICY "chapters_delete_policy" ON public.chapters
+  FOR DELETE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+-- 6.3 lessons
+DROP POLICY IF EXISTS "lessons_select_policy" ON public.lessons;
+CREATE POLICY "lessons_select_policy" ON public.lessons
+  FOR SELECT TO anon, authenticated
+  USING (
+    status = 'published'
+    OR private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'reviewer')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "lessons_insert_policy" ON public.lessons;
+CREATE POLICY "lessons_insert_policy" ON public.lessons
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "lessons_update_policy" ON public.lessons;
+CREATE POLICY "lessons_update_policy" ON public.lessons
+  FOR UPDATE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "lessons_delete_policy" ON public.lessons;
+CREATE POLICY "lessons_delete_policy" ON public.lessons
+  FOR DELETE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+-- 6.4 lesson_blocks
+DROP POLICY IF EXISTS "lesson_blocks_select_policy" ON public.lesson_blocks;
+CREATE POLICY "lesson_blocks_select_policy" ON public.lesson_blocks
+  FOR SELECT TO anon, authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.lessons l
+      WHERE l.id = lesson_blocks.lesson_id
+        AND (
+          (l.status = 'published' AND l.access_level = 'free')
+          OR (l.status = 'published' AND private.is_pro_user((SELECT auth.uid())))
+          OR private.has_role((SELECT auth.uid()), 'editor')
+          OR private.has_role((SELECT auth.uid()), 'reviewer')
+          OR private.has_role((SELECT auth.uid()), 'super_admin')
+        )
+    )
+  );
+
+DROP POLICY IF EXISTS "lesson_blocks_insert_policy" ON public.lesson_blocks;
+CREATE POLICY "lesson_blocks_insert_policy" ON public.lesson_blocks
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "lesson_blocks_update_policy" ON public.lesson_blocks;
+CREATE POLICY "lesson_blocks_update_policy" ON public.lesson_blocks
+  FOR UPDATE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'editor')
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "lesson_blocks_delete_policy" ON public.lesson_blocks;
+CREATE POLICY "lesson_blocks_delete_policy" ON public.lesson_blocks
+  FOR DELETE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+-- 6.5 user_roles (Explicit management restricted to super_admin)
+DROP POLICY IF EXISTS "user_roles_select_policy" ON public.user_roles;
+CREATE POLICY "user_roles_select_policy" ON public.user_roles
+  FOR SELECT TO authenticated
+  USING (
+    user_id = (SELECT auth.uid())
+    OR private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "user_roles_insert_policy" ON public.user_roles;
+CREATE POLICY "user_roles_insert_policy" ON public.user_roles
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "user_roles_update_policy" ON public.user_roles;
+CREATE POLICY "user_roles_update_policy" ON public.user_roles
+  FOR UPDATE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+DROP POLICY IF EXISTS "user_roles_delete_policy" ON public.user_roles;
+CREATE POLICY "user_roles_delete_policy" ON public.user_roles
+  FOR DELETE TO authenticated
+  USING (
+    private.has_role((SELECT auth.uid()), 'super_admin')
+  );
+
+-- 7. Idempotent Storage Buckets & Policies
 DO $$ BEGIN
     INSERT INTO storage.buckets (id, name, public) VALUES ('public-media', 'public-media', true) ON CONFLICT (id) DO UPDATE SET public = true;
     INSERT INTO storage.buckets (id, name, public) VALUES ('pro-media', 'pro-media', false) ON CONFLICT (id) DO UPDATE SET public = false;
@@ -188,16 +366,12 @@ CREATE POLICY "storage_media_write_admin" ON storage.objects
     )
   );
 
--- 6. Table Privileges (Minimal Required Grants & Explicit Revokes)
-
--- 6.1 Unauthenticated Role (anon): Only SELECT on public content tables
+-- 8. Table Privileges
 GRANT SELECT ON public.subjects, public.chapters, public.lessons, public.lesson_blocks, public.media TO anon;
 REVOKE ALL ON public.profiles, public.user_roles, public.subscriptions, public.lesson_progress, public.user_streaks FROM anon;
 
--- 6.2 Authenticated Role (authenticated): SELECT on content/user tables, INSERT/UPDATE on student-owned rows only
 GRANT SELECT ON public.subjects, public.chapters, public.lessons, public.lesson_blocks, public.media, public.profiles, public.user_roles, public.subscriptions, public.lesson_progress, public.user_streaks TO authenticated;
 GRANT INSERT, UPDATE ON public.profiles, public.lesson_progress, public.user_streaks TO authenticated;
 REVOKE INSERT, UPDATE, DELETE ON public.user_roles, public.subscriptions, public.subjects, public.chapters, public.lessons, public.lesson_blocks, public.media FROM authenticated;
 
--- 6.3 Service Role (service_role): Full Administrative Access for Triggers/Webhooks
 GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;

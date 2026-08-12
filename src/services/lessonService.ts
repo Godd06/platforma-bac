@@ -21,8 +21,52 @@ const APPROVED_LESSON_FIELDS =
   'id, chapter_id, slug, title, short_description, estimated_minutes, access_level, cover_media_id, sort_order, status, published_at, created_at, updated_at'
 
 /**
+ * Helper to check if a logged-in user has PRO access rights or staff roles.
+ */
+async function checkIsProUser(userId: string | undefined): Promise<boolean> {
+  if (!userId) return false
+
+  try {
+    // 1. Staff roles get full access (editor, reviewer, super_admin)
+    const { data: roles } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', userId)
+
+    if (roles && (roles as Array<{ role: string }>).some((r) => ['editor', 'reviewer', 'super_admin'].includes(r.role))) {
+      return true
+    }
+
+    // 2. Check active/trialing PRO subscription
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('plan, status, current_period_end')
+      .eq('user_id', userId)
+      .eq('plan', 'pro')
+      .in('status', ['active', 'trialing'])
+      .maybeSingle()
+
+    if (sub) {
+      const subObj = sub as { plan: string; status: string; current_period_end: string | null }
+      if (!subObj.current_period_end || new Date(subObj.current_period_end) > new Date()) {
+        return true
+      }
+    }
+  } catch (err) {
+    console.error('[lessonService] Error checking PRO status:', err)
+  }
+
+  return false
+}
+
+/**
  * Service function to fetch a single lesson and its blocks from Supabase.
- * Strictly implements Rule 2 access states: NOT_FOUND, PRO_REQUIRED, ACCESSIBLE, ERROR.
+ * Strictly implements access state rules based on User Rights & Access Level:
+ * - FREE + blocks -> ACCESSIBLE
+ * - FREE + zero blocks -> ACCESSIBLE (empty state)
+ * - PRO + PRO user -> ACCESSIBLE (even if zero blocks)
+ * - PRO + non-PRO user -> PRO_REQUIRED (metadata + PRO Gate)
+ * - unpublished/not found -> NOT_FOUND
  */
 export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFetchResult> {
   if (!lessonId || typeof lessonId !== 'string') {
@@ -127,20 +171,12 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       }
     }
 
-    // 3. Attempt to fetch lesson blocks (RLS enforced)
-    const { data: blocksData, error: blocksError } = await supabase
-      .from('lesson_blocks')
-      .select('*')
-      .eq('lesson_id', lessonId)
-      .order('sort_order', { ascending: true })
+    // 3. Determine Access State based on user rights & access_level (Objective 4 compliance)
+    const { data: sessionData } = await supabase.auth.getSession()
+    const currentUserId = sessionData?.session?.user?.id
+    const isPro = await checkIsProUser(currentUserId)
 
-    const blocks = (blocksData as LessonBlockData[]) || []
-
-    // 4. Determine Rule 2 Access State:
-    // - FREE lesson -> ACCESSIBLE (blocks returned)
-    // - PRO lesson + non-PRO user (blocks count = 0 or RLS error) -> PRO_REQUIRED (metadata + PRO Gate)
-    // - PRO lesson + PRO user (blocks returned > 0) -> ACCESSIBLE
-    if (lesson.access_level === 'pro' && (blocks.length === 0 || blocksError)) {
+    if (lesson.access_level === 'pro' && !isPro) {
       return {
         lesson,
         blocks: [],
@@ -153,9 +189,20 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       }
     }
 
+    // 4. User is authorized (FREE lesson OR PRO lesson with PRO/Staff user) -> Fetch blocks
+    const { data: blocksData, error: blocksError } = await supabase
+      .from('lesson_blocks')
+      .select('*')
+      .eq('lesson_id', lessonId)
+      .order('sort_order', { ascending: true })
+
+    if (blocksError) {
+      console.warn('[lessonService] Warning fetching lesson blocks:', blocksError)
+    }
+
     return {
       lesson,
-      blocks,
+      blocks: (blocksData as LessonBlockData[]) || [],
       chapter,
       subject,
       prevLesson,

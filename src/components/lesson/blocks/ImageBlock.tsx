@@ -6,11 +6,44 @@ interface Props {
   content: ImageBlockContent
 }
 
+/**
+ * Validates image URLs to prevent malicious scheme injection (javascript:, data:, vbscript:, //).
+ * Allows HTTPS, HTTP, and safe relative paths.
+ */
+function isSafeImageUrl(rawUrl: unknown): boolean {
+  if (!rawUrl || typeof rawUrl !== 'string') return false
+  const trimmed = rawUrl.trim()
+  if (!trimmed) return false
+
+  const lower = trimmed.toLowerCase()
+  if (
+    lower.startsWith('javascript:') ||
+    lower.startsWith('data:') ||
+    lower.startsWith('vbscript:') ||
+    trimmed.startsWith('//')
+  ) {
+    return false
+  }
+
+  if (trimmed.startsWith('/') || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    return true
+  }
+
+  try {
+    const parsed = new URL(trimmed)
+    return ['https:', 'http:'].includes(parsed.protocol)
+  } catch {
+    return false
+  }
+}
+
 export const ImageBlock: React.FC<Props> = ({ content }) => {
   const { url, alt = 'Imagine lecție', caption } = content
   const [hasError, setHasError] = useState(false)
 
-  if (!url || hasError) {
+  const isUrlValid = isSafeImageUrl(url)
+
+  if (!url || !isUrlValid || hasError) {
     return (
       <div className="my-4 flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-border bg-surface text-text-muted text-center space-y-2">
         <ImageOff className="w-8 h-8 opacity-50" />

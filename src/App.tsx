@@ -11,12 +11,13 @@ import { AdminLayout } from '@/components/layout/AdminLayout'
 import { LandingPage } from '@/pages/LandingPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage'
+import { ResetPasswordPage } from '@/pages/ResetPasswordPage'
 import { ProUpgradePage } from '@/pages/ProUpgradePage'
 
 import { DashboardPage } from '@/pages/DashboardPage'
 import { CatalogPage } from '@/pages/CatalogPage'
 import { SubjectPage } from '@/pages/SubjectPage'
-import { ChapterPage } from '@/pages/ChapterPage'
 import { LessonPage } from '@/pages/LessonPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 
@@ -36,22 +37,23 @@ export const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
+          {/* Public Routes (Accessible without login) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/pro" element={<ProUpgradePage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
+            <Route path="/catalog/:subject" element={<SubjectPage />} />
+            <Route path="/lesson/:lessonId" element={<LessonPage />} />
           </Route>
 
           {/* Protected Student Routes */}
           <Route element={<ProtectedRoute />}>
             <Route element={<StudentLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/catalog" element={<CatalogPage />} />
-              <Route path="/catalog/:subject" element={<SubjectPage />} />
-              <Route path="/catalog/:subject/:chapter" element={<ChapterPage />} />
-              <Route path="/lesson/:lessonId" element={<LessonPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
@@ -79,4 +81,3 @@ export const App: React.FC = () => {
 }
 
 export default App
-
