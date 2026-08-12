@@ -1,0 +1,57 @@
+import React from 'react'
+import type {
+  LessonBlockData,
+  HeadingBlockContent,
+  RichTextBlockContent,
+  ImportantBlockContent,
+  RememberBlockContent,
+  DefinitionBlockContent,
+  SummaryBlockContent,
+  ImageBlockContent,
+} from '@/types/blocks'
+
+import { HeadingBlock } from './blocks/HeadingBlock'
+import { RichTextBlock } from './blocks/RichTextBlock'
+import { ImportantBlock } from './blocks/ImportantBlock'
+import { RememberBlock } from './blocks/RememberBlock'
+import { DefinitionBlock } from './blocks/DefinitionBlock'
+import { SummaryBlock } from './blocks/SummaryBlock'
+import { ImageBlock } from './blocks/ImageBlock'
+import { FallbackBlock } from './blocks/FallbackBlock'
+
+interface Props {
+  block: LessonBlockData
+}
+
+export const LessonBlockRenderer: React.FC<Props> = ({ block }) => {
+  try {
+    switch (block.block_type) {
+      case 'heading':
+        return <HeadingBlock content={block.content as unknown as HeadingBlockContent} />
+
+      case 'rich_text':
+        return <RichTextBlock content={block.content as unknown as RichTextBlockContent} />
+
+      case 'important':
+        return <ImportantBlock content={block.content as unknown as ImportantBlockContent} />
+
+      case 'remember':
+        return <RememberBlock content={block.content as unknown as RememberBlockContent} />
+
+      case 'definition':
+        return <DefinitionBlock content={block.content as unknown as DefinitionBlockContent} />
+
+      case 'summary':
+        return <SummaryBlock content={block.content as unknown as SummaryBlockContent} />
+
+      case 'image':
+        return <ImageBlock content={block.content as unknown as ImageBlockContent} />
+
+      default:
+        return <FallbackBlock block={block} />
+    }
+  } catch (err) {
+    console.error(`[LessonBlockRenderer] Error rendering block ${block.id}:`, err)
+    return <FallbackBlock block={block} />
+  }
+}
