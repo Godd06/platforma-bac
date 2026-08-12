@@ -1,7 +1,7 @@
 # TECHNICAL IMPLEMENTATION SPECIFICATION — Bac Learning Platform
 ## V1 — Specificație tehnică executabilă
 
-**Rolul documentului:** sursa tehnică de adevăr pentru implementare.  
+**Rolul documentului:** sursa tehnică de adevăr pentru implementare.
 **Scop:** transformarea MASTER PROJECT SPECIFICATION V3 într-un plan concret pentru database, auth, storage, frontend, CMS, progres, monetizare și deployment.
 
 ---
@@ -626,30 +626,36 @@ media
 
 ### Content Discovery & Access Model
 
-The security model separates **Discovery (Metadata)** from **Content Access (Lesson Blocks & Media)**:
+> [!IMPORTANT]
+> **CANONICAL PRINCIPLE**: **EDUCATIONAL CONTENT REQUIRES AUTHENTICATION**
+> Access to any educational route (`/catalog`, `/catalog/:subject`, `/lesson/:lessonId`) or database query on educational tables (`subjects`, `chapters`, `lessons`, `lesson_blocks`, `media`) requires valid authentication. Unauthenticated requests (ANON/Guest) are DENIED both at router level and database RLS level.
 
-## Public & Non-PRO Users
-
+## 1. Unauthenticated Users (ANON / Guest)
 Can read:
-- published subjects;
-- published chapters;
-- published lesson **metadata** for ALL published lessons (both `free` and `pro` access levels: `id`, `chapter_id`, `slug`, `title`, `short_description`, `estimated_minutes`, `access_level`, `cover_media_id`, `sort_order`, `status`);
+- Public marketing & auth assets/routes only (`/`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/pro`).
+
+Cannot read:
+- Educational content tables (`subjects`, `chapters`, `lessons`, `lesson_blocks`, `media`). Access is DENIED by RLS.
+
+## 2. Authenticated Non-PRO Users (Student Standard)
+Can read:
+- Published `subjects` and `chapters`;
+- Published lesson **metadata** for ALL published lessons (`id, chapter_id, slug, title, short_description, estimated_minutes, access_level, cover_media_id, sort_order, status`) to enable authenticated catalog discovery;
 - `lesson_blocks` and media for published **FREE** lessons only.
 
 Cannot read:
 - `lesson_blocks` for `pro` lessons (enforced strictly by database RLS via `private.is_pro_user(auth.uid())`);
 - `media` objects associated with PRO content;
-- unpublished lessons (`draft`, `review`, `archived`).
+- Unpublished lessons (`draft`, `review`, `archived`).
 
 Behavior on `/lesson/:lessonId`:
-- Non-PRO opening a PRO lesson receives lesson metadata from database, but `lesson_blocks` query returns 0 rows due to RLS.
+- Authenticated Non-PRO student opening a PRO lesson receives lesson metadata from database, but `lesson_blocks` query returns 0 rows due to RLS.
 - UI renders **PRO Gate / Upgrade CTA** instead of 404.
 - 404 is reserved strictly for non-existent lesson IDs in database.
 
-## PRO Users
-
+## 3. Authenticated PRO Users
 Can read:
-- all published metadata;
+- All published metadata;
 - `lesson_blocks` and media for both `free` and `pro` published lessons.
 
 ## Student
@@ -722,32 +728,39 @@ Auth provider handles secure reset.
 Conceptual guards:
 
 ```text
-PublicRoute
-AuthenticatedRoute
-ProRoute
-AdminRoute
-EditorRoute
-ReviewerRoute
+PublicRoute (/, /login, /register, /forgot-password, /reset-password, /pro)
+AuthenticatedEducationalRoute (/catalog, /catalog/:subject, /lesson/:lessonId)
+AuthenticatedStudentRoute (/dashboard, /settings)
+ProRoute (PRO lesson blocks & PRO media access)
+AdminRoute (/admin/*)
+EditorRoute (/admin/content)
+ReviewerRoute (/admin/content read-only)
 ```
 
 UI guards are only UX.
 
-Actual access must also be enforced by backend/database policies.
+Actual access must also be enforced by backend/database policies (Supabase RLS).
 
 ---
 
 # 21. Student route map
 
 ```text
+Public Routes (Unauthenticated):
 /
 ├── login
 ├── register
-├── pro
-├── dashboard
-├── catalog
-│   └── :subject
-├── lesson
-│   └── :lessonId
+├── forgot-password
+├── reset-password
+└── pro
+
+Protected Educational Routes (Requires Auth):
+/catalog
+├── :subject
+└── /lesson/:lessonId
+
+Protected Student Routes (Requires Auth):
+/dashboard
 └── settings
 ```
 

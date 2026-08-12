@@ -1,7 +1,7 @@
 # MASTER PROJECT SPECIFICATION — Platformă web pentru Bacalaureat
 ## V3 — Arhitectură + UX + Design + MVP Blueprint
 
-**Status:** Blueprint de implementare  
+**Status:** Blueprint de implementare
 **Scop:** documentul de lucru principal înainte de alegerea builderului și începerea codului.
 
 > V3 transformă ideile stabilite anterior într-o arhitectură concretă. Unde am luat o decizie de proiectare pentru a evita blocajele, aceasta este marcată **DECIZIE PROPUSĂ**. Poate fi modificată ulterior, dar nu trebuie lăsată ambiguă în timpul implementării.
@@ -66,20 +66,25 @@ Aplicația nu trebuie proiectată astfel încât să depindă permanent de un si
 
 # 3. Structura aplicației
 
-## Public
+## Public Routes (Fără autentificare)
 
 - `/`
 - `/login`
 - `/register`
+- `/forgot-password`
+- `/reset-password`
 - `/pro`
 - pagini juridice
 
-## Student
+## Protected Educational Routes (Necesită autentificare)
 
-- `/dashboard`
 - `/catalog`
 - `/catalog/:subject`
 - `/lesson/:lessonId`
+
+## Protected Student Routes (Necesită autentificare)
+
+- `/dashboard`
 - `/settings`
 
 ## Admin
@@ -189,21 +194,36 @@ Pentru Română, un „Chapter” poate reprezenta o operă.
 
 ### 4.1. Content Discovery & Access Model
 
-Modelul de securitate și acces la conținut separă strict **Descoperirea (Discovery)** de **Accesul la Conținut (Content Access)**:
+> [!IMPORTANT]
+> **REGULĂ PRINCIPALĂ DE PRODUS**: **EDUCATIONAL CONTENT REQUIRES AUTHENTICATION**
+> Accesul la orice resursă sau rută educațională (`/catalog`, `/catalog/:subject`, `/lesson/:lessonId`) necesită autentificare prealabilă. Utilizatorii neautentificați (Guest/Anonim) **NU** pot accesa catalogul, operele sau lecțiile și sunt redirecționați către `/login`.
 
-1. **Visibility / Discovery (Descoperire)**:
-   - Toate lecțiile cu `status = 'published'` sunt complet descoperibile în Catalog, indiferent dacă au `access_level = 'free'` sau `access_level = 'pro'`.
-   - Metadata lecțiilor publicate (`id`, `chapter_id`, `slug`, `title`, `short_description`, `estimated_minutes`, `access_level`, `cover_media_id`, `sort_order`, `status`) este vizibilă public pentru a permite utilizatorilor non-PRO să exploreze structura materiei.
+Modelul de securitate și acces la conținut este structurat pe 3 niveluri clare:
 
-2. **Content Access (Acces la Conținut & Blocurile de Lecție)**:
-   - Pentru o lecție `free`: `lesson_blocks` și resursele aferente pot fi citite de orice utilizator (anonim sau autentificat).
-   - Pentru o lecție `pro`:
-     - Utilizatorul **PRO**: Are acces deplin la `lesson_blocks` și fișierele media.
-     - Utilizatorul **non-PRO / anonim**:
-       - `lesson_blocks` sunt refuzate strict la nivel de bază de date de politicile RLS.
-       - Media PRO din Storage/tabela `media` rămâne inaccesibilă.
-       - La accesarea directă a URL-ului `/lesson/:lessonId`, aplicația încarcă metadata lecției și afișează un **PRO Gate / Upgrade CTA**, fără a genera eroare 404 (lecția există, dar conținutul este restricționat).
-       - Eroarea **404 Not Found** este rezervată strict pentru ID-uri de lecție inexistente în baza de date.
+1. **Authentication Gate (Autentificare)**:
+   - **Utilizator Neautentificat (Guest / Anonim)**:
+     - Poate accesa doar rutele publice: `/`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/pro`.
+     - Orice încercare de acces la rute educaționale (`/catalog`, `/catalog/:subject`, `/lesson/:lessonId`) sau interogări direct la API-ul de date educaționale este respinsă (redirecționare în UI și RLS DENIED pe server).
+
+2. **Authenticated Discovery (Descoperire pentru Utilizatori Autentificați)**:
+   - **Utilizatorul Autentificat Non-PRO (Student Standard)**:
+     - Poate explora Catalogul (`/catalog`) și paginile de materii (`/catalog/:subject`).
+     - Poate vedea metadata tuturor lecțiilor publicate (`id`, `chapter_id`, `slug`, `title`, `short_description`, `estimated_minutes`, `access_level`, `cover_media_id`, `sort_order`, `status`).
+     - Pentru o lecție `free`: Are acces complet (`ACCESSIBLE`) la `lesson_blocks` și conținutul de studiu.
+     - Pentru o lecție `pro`: Are stare `PRO_REQUIRED` (vede metadata lecției + PRO Gate Banner / Upgrade CTA; `lesson_blocks` sunt blocate la nivel de server prin RLS).
+
+3. **Authorized PRO & Staff Access (Utilizatori PRO & Staff)**:
+   - **Utilizatorul Autentificat PRO**: Are acces deplin (`ACCESSIBLE`) la lecțiile `free` și `pro`, blocurile de lecție și resursele media PRO.
+   - **Roluri Staff (Reviewer, Editor, Super Admin)**:
+     - `reviewer`: Are acces `SELECT` read-only la conținutul nepublicat (status `draft`/`review`) în scop de verificare. **NU** deține permisiuni `INSERT`/`UPDATE`/`DELETE`.
+     - `editor`: Poate crea și edita conținut (`INSERT`, `UPDATE`).
+     - `super_admin`: Acces administrativ complet (`INSERT`, `UPDATE`, `DELETE` conținut, gestionare `user_roles`).
+
+4. **Tratarea Stărilor de Acces la Lecție**:
+   - `NOT_FOUND` (404): ID de lecție inexistent în baza de date.
+   - `PRO_REQUIRED`: Lecție PRO accesată de un utilizator autentificat non-PRO (afișează Metadata + PRO Gate).
+   - `ACCESSIBLE`: Lecție FREE sau lecție PRO accesată de un utilizator PRO/Staff (afișează metadata + blocuri de conținut).
+   - `ERROR`: Eroare de rețea sau interogare DB.
 
 ---
 
@@ -672,15 +692,16 @@ Compunere Vizuală UI:
 - **Titlu Principal**: `chapter.title + ' — ' + metadata.author` (ex: `Moara cu noroc — Ioan Slavici`)
 - **Subtitlu**: `metadata.work_type` sau `chapter.short_description` (ex: `Nuvela psihologică`)
 
-## 20.3. Routing Oficial Catalog
+## 20.3. Routing Oficial Catalog & Protecție Acces
 
-Rutele oficiale pentru studenți sunt:
+Rutele oficiale educaționale protejate (necesită autentificare) sunt:
 
-- `/catalog` -> Pagina principală cu lista de materii (`subjects`).
-- `/catalog/:subject` -> Pagina materiei selectate (ex: `/catalog/romana`), care afișează **pe aceeași pagină** toate operele și lecțiile lor.
-- `/lesson/:lessonId` -> Pagina unică de studiu/conținut a lecției.
+- `/catalog` -> Pagina principală cu lista de materii (`subjects`). Accesibilă doar utilizatorilor autentificați.
+- `/catalog/:subject` -> Pagina materiei selectate (ex: `/catalog/romana`), care afișează **pe aceeași pagină** toate operele și lecțiile lor. Accesibilă doar utilizatorilor autentificați.
+- `/lesson/:lessonId` -> Pagina unică de studiu/conținut a lecției. Accesibilă doar utilizatorilor autentificați.
 
-> [!NOTE]
+> [!IMPORTANT]
+> **EDUCATIONAL CONTENT REQUIRES AUTHENTICATION**: Utilizatorii neautentificați care încearcă accesarea `/catalog`, `/catalog/:subject` sau `/lesson/:lessonId` vor fi redirecționați automat către `/login`.
 > Ruta `/catalog/:subject/:chapter` **NU** este o rută de produs. `Chapter` este o secțiune vizuală și un card Expandable în interiorul paginii `/catalog/:subject`.
 
 ## 20.4. Model UX Expandable Card / Accordion
@@ -1353,3 +1374,18 @@ Acesta va fi documentul pe care îl dăm AI-ului care construiește efectiv apli
 5. Implementarea Foundation.
 
 Acesta este punctul în care proiectul poate trece de la **idee** la **specificație tehnică executabilă**.
+
+---
+
+# 46. Criterii de Acceptare Canonice (Acceptance Criteria)
+
+1. **Guest → `/catalog`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
+2. **Guest → `/catalog/:subject`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
+3. **Guest → `/lesson/:lessonId`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
+4. **Guest → Direct API Query**: Refuzat la nivel de bază de date de politicile Supabase RLS (DENIED).
+5. **Authenticated Student → FREE Lesson**: Stare `ACCESSIBLE` (acces complet la metadata și blocurile de conținut).
+6. **Authenticated Student → PRO Lesson**: Stare `PRO_REQUIRED` (vede metadata lecției + PRO Gate Banner / Upgrade CTA; blocurile sunt ascunse de RLS).
+7. **PRO User → PRO Lesson**: Stare `ACCESSIBLE` (acces complet la metadata, blocuri și media PRO).
+8. **Unpublished Lesson**: Indisponibilă pentru studenți (`NOT_FOUND` / 404).
+9. **Reviewer → Unpublished Content**: Acces `SELECT` (read-only) pentru revizuire conținut.
+10. **Reviewer → Modify Content**: Refuzat (`INSERT`, `UPDATE`, `DELETE` nepermise de RLS).
