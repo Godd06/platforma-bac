@@ -37,7 +37,7 @@ export const App: React.FC = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes (Accessible without login) */}
+          {/* Public Routes (Accessible without authentication) */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -45,20 +45,20 @@ export const App: React.FC = () => {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/pro" element={<ProUpgradePage />} />
-            <Route path="/catalog" element={<CatalogPage />} />
-            <Route path="/catalog/:subject" element={<SubjectPage />} />
-            <Route path="/lesson/:lessonId" element={<LessonPage />} />
           </Route>
 
-          {/* Protected Student Routes */}
+          {/* Protected Educational & Student Routes (Requires Authentication) */}
           <Route element={<ProtectedRoute />}>
             <Route element={<StudentLayout />}>
+              <Route path="/catalog" element={<CatalogPage />} />
+              <Route path="/catalog/:subject" element={<SubjectPage />} />
+              <Route path="/lesson/:lessonId" element={<LessonPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
 
-          {/* Protected Admin Routes */}
+          {/* Protected Admin Routes (Requires Staff Roles) */}
           <Route element={<AdminProtectedRoute />}>
             <Route element={<AdminLayout />}>
               <Route path="/admin" element={<AdminDashboardPage />} />
