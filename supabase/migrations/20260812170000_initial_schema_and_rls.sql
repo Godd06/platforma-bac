@@ -233,27 +233,6 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Ensure Check Constraints on Existing Tables
-DO $$ BEGIN
-    ALTER TABLE public.user_streaks ADD CONSTRAINT user_streaks_current_check CHECK (current_streak >= 0);
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL;
-END $$;
-
-DO $$ BEGIN
-    ALTER TABLE public.user_streaks ADD CONSTRAINT user_streaks_longest_check CHECK (longest_streak >= 0);
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL;
-END $$;
-
-DO $$ BEGIN
-    ALTER TABLE public.lesson_progress ADD CONSTRAINT lesson_progress_percent_check CHECK (progress_percent >= 0 AND progress_percent <= 100);
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL;
-END $$;
-
-DO $$ BEGIN
-    ALTER TABLE public.subscriptions ADD CONSTRAINT subscriptions_plan_check CHECK (plan IN ('free', 'pro'));
-EXCEPTION WHEN duplicate_object THEN NULL; WHEN duplicate_table THEN NULL;
-END $$;
-
 -- 5. Indexes Creation
 CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON public.profiles(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_roles_user_id ON public.user_roles(user_id);

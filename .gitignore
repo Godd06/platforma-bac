@@ -9,6 +9,9 @@ dist/
 .env.local
 .env.*.local
 
+# Supabase temporary files
+supabase/.temp/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
