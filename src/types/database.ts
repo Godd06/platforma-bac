@@ -119,6 +119,26 @@ export interface UserStreak {
   updated_at: string
 }
 
+export type UserActivityType =
+  | 'lesson_completed'
+  | 'quiz_completed'
+  | 'lesson_started'
+  | 'lesson_progress'
+  | 'hidden_answer_revealed'
+  | 'self_assessment'
+  | 'audio_played'
+  | 'video_played'
+  | 'lesson_opened'
+
+export interface UserActivity {
+  id: string
+  user_id: string
+  activity_type: string
+  lesson_id: string | null
+  metadata: Record<string, unknown> | null
+  created_at: string
+}
+
 export interface Subscription {
   id: string
   user_id: string
@@ -182,6 +202,11 @@ export interface Database {
         Row: UserStreak
         Insert: Partial<UserStreak> & { user_id: string }
         Update: Partial<UserStreak>
+      }
+      user_activity: {
+        Row: UserActivity
+        Insert: Partial<UserActivity> & { user_id: string; activity_type: string }
+        Update: Partial<UserActivity>
       }
       subscriptions: {
         Row: Subscription

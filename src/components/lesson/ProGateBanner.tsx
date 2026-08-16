@@ -8,64 +8,49 @@ interface Props {
 
 export const ProGateBanner: React.FC<Props> = ({ lessonTitle }) => {
   return (
-    <div className="my-8 rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-amber-500/5 to-surface p-6 sm:p-8 shadow-sm space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-          <Lock className="w-6 h-6" />
+    <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-surface to-surface p-6 sm:p-10 shadow-2xl text-center space-y-6">
+      <div className="w-16 h-16 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(245,158,11,0.25)]">
+        <Lock className="w-8 h-8" />
+      </div>
+
+      <div className="max-w-lg mx-auto space-y-2">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Conținut Exclusiv PRO</span>
         </div>
-        <div className="space-y-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-700 dark:text-amber-300">
-            <Sparkles className="w-3.5 h-3.5" />
-            Lecție Exclusivă PRO
-          </span>
-          <h3 className="text-xl sm:text-2xl font-bold text-text">
-            Deblochează conținutul complet pentru „{lessonTitle}”
-          </h3>
+        <h3 className="text-xl sm:text-2xl font-black text-text tracking-tight">
+          Lecția „{lessonTitle}” face parte din pachetul PRO
+        </h3>
+        <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+          Deblochează eseul complet, analiza aprofundată pe scene și citate, schemele de memorare și materialele audio pentru această operă.
+        </p>
+      </div>
+
+      <div className="max-w-md mx-auto p-4 rounded-2xl bg-surface-elevated/70 border border-border/80 text-left space-y-2">
+        <span className="text-xs font-bold text-text uppercase tracking-wider block mb-2">
+          Ce include pachetul complet:
+        </span>
+        <div className="flex items-center gap-2.5 text-xs text-text">
+          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <span>Eseul model redactat la nivel de 10 pe barem</span>
+        </div>
+        <div className="flex items-center gap-2.5 text-xs text-text">
+          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <span>Sinteza audio pentru învățare oriunde</span>
+        </div>
+        <div className="flex items-center gap-2.5 text-xs text-text">
+          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <span>Quiz-uri interactive de verificare rapidă</span>
         </div>
       </div>
 
-      <p className="text-sm sm:text-base leading-relaxed text-text-muted">
-        Această lecție face parte din modulul PRO de pregătire intensivă pentru examenul de Bacalaureat.
-        Abonează-te la planul PRO pentru a primi acces nelimitat la toate explicațiile, sintezele și eseurile structurate.
-      </p>
-
-      <div className="space-y-2 pt-2 border-t border-amber-500/20">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-          Ce include abonamentul PRO:
-        </h4>
-        <ul className="grid sm:grid-cols-2 gap-2.5 text-xs sm:text-sm text-text">
-          <li className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Explicații aprofundate pe fiecare operă</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Sinteze și caracterizări de personaje</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Eseuri model conform baremului oficial</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Acces complet pe toate materiile</span>
-          </li>
-        </ul>
-      </div>
-
-      <div className="pt-4 flex flex-wrap items-center gap-4">
+      <div className="pt-2">
         <Link
           to="/pro"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-colors shadow-sm text-sm"
+          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-glow min-h-[48px]"
         >
-          <span>Treci la planul PRO</span>
+          <span>Deblochează accesul PRO</span>
           <ArrowRight className="w-4 h-4" />
-        </Link>
-        <Link
-          to="/catalog"
-          className="text-xs sm:text-sm font-medium text-text-muted hover:text-text underline"
-        >
-          Înapoi la Catalog
         </Link>
       </div>
     </div>
