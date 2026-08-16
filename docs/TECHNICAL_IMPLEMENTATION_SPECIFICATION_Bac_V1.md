@@ -399,70 +399,124 @@ Database păstrează metadata și locația fișierului.
 
 # 9. Lesson progress
 
-## lesson_progress
+## 9.1. Schema & Constraints `lesson_progress`
+
+`lesson_progress` este sursa unică de adevăr pentru parcursul individual al fiecărui elev prin conținutul educațional.
 
 ```text
-id                uuid PK
-user_id           uuid NOT NULL
-lesson_id         uuid NOT NULL
-status            enum(not_started, in_progress, completed)
-progress_percent  integer DEFAULT 0
+id                uuid PK DEFAULT gen_random_uuid()
+user_id           uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
+lesson_id         uuid NOT NULL REFERENCES lessons(id) ON DELETE CASCADE
+status            text NOT NULL CHECK (status IN ('not_started', 'in_progress', 'completed'))
+progress_percent  integer NOT NULL DEFAULT 0 CHECK (progress_percent >= 0 AND progress_percent <= 100)
 last_block_id     uuid NULL
 started_at        timestamptz NULL
 completed_at      timestamptz NULL
-updated_at        timestamptz
+updated_at        timestamptz NOT NULL DEFAULT now()
 ```
 
-Unique:
-
+Constraints & Indexes:
 ```text
-(user_id, lesson_id)
+UNIQUE (user_id, lesson_id)
+INDEX (user_id, status, updated_at DESC)
 ```
+
+## 9.2. Reguli de Actualizare a Progresului & Validare Server-Side
+
+- **Drepturi Client:** Utilizatorul autentic își poate citi și transmite propriul progres (`user_id = auth.uid()`).
+- **Reguli Obligatorii de Validare Server-Side:**
+  1. `user_id = auth.uid()` — verificat strict; utilizatorul nu poate citi sau modifica progresul altui elev;
+  2. `lesson_id` aparține unei lecții existente și accesibile conform statutului de abonament;
+  3. `progress_percent` este în intervalul [0, 100];
+  4. Tranzițiile de stare sunt canonice (`not_started` $\rightarrow$ `in_progress` $\rightarrow$ `completed`);
+  5. `last_block_id` aparține lecției respective;
+  6. `completed_at` este setat doar la finalizarea validă a conținutului relevant.
+- **Interdicție Antifraudă:** Clientul **NU** poate falsifica o lecție completată transmițând direct un payload arbitrar (`status: 'completed', progress_percent: 100`) fără validarea contextului educațional pe server.
+- **Inițiere:** Când utilizatorul deschide lecția și începe derularea/interacțiunea, dacă nu există o înregistrare anterioară, se creează un rând cu `status = 'in_progress'`, `started_at = now()`, `progress_percent = 0`.
+- **Actualizare pe parcurs:** Pe măsură ce utilizatorul parcurge blocurile, `last_block_id` se actualizează, iar `progress_percent` este recalculat debounced pe baza procentului de blocuri parcurse.
+- **Finalizare (`completed`):** Când utilizatorul ajunge la sfârșitul lecției sau apasă acțiunea explicită de finalizare, serverul marchează `status = 'completed'`, `progress_percent = 100`, `completed_at = now()`. Această tranziție declanșează scrierea server-side în `user_activity` și apelarea Streak Engine-ului.
+- **Interdicție:** Simpla deschidere a paginii de lecție **NU** marchează lecția ca `completed`.
 
 ---
 
 # 10. User activity
 
-## user_activity
+## 10.1. Schema & Reguli de Securitate `user_activity`
+
+Tabela `user_activity` păstrează un jurnal structurat al acțiunilor semnificative ale utilizatorului pentru istoric, dashboard și analytics.
 
 ```text
-id              uuid PK
-user_id         uuid NOT NULL
+id              uuid PK DEFAULT gen_random_uuid()
+user_id         uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE
 activity_type   text NOT NULL
-lesson_id       uuid NULL
-metadata        jsonb
-created_at      timestamptz
+lesson_id       uuid NULL REFERENCES lessons(id) ON DELETE SET NULL
+metadata        jsonb DEFAULT '{}'::jsonb
+created_at      timestamptz NOT NULL DEFAULT now()
 ```
 
-Activități MVP:
-
+Index:
 ```text
-lesson_opened
-lesson_started
-lesson_completed
-quiz_completed
-hidden_answer_revealed
-audio_played
-video_played
+INDEX (user_id, created_at DESC)
 ```
 
-Nu înregistrăm excesiv fiecare interacțiune de UI.
+### Reguli de Securitate & RLS:
+- **READ:** Studentul poate executa `SELECT` **DOAR** pentru propriile sale activități (`WHERE user_id = auth.uid()`).
+- **WRITE:** Studentul **NU are permisiuni de `INSERT`, `UPDATE` sau `DELETE` direct din client**.
+- Evenimentele de activitate sunt create **exclusiv de logica server-side / trusted application flow** în urma validării unor acțiuni reale (ex: finalizare lecție, trimitere quiz). Clientul nu poate trimite direct `activity_type = 'lesson_completed'`.
+
+## 10.2. Tipuri de Activități & Prioritizare UI
+
+| Activity Type | Semnificație | Inclus în Dashboard Recent Activity? |
+| :--- | :--- | :--- |
+| `lesson_completed` | Lecție finalizată integral | **DA (Prioritate 1)** |
+| `quiz_completed` | Quiz de verificare parcurs cu scor | **DA (Prioritate 2)** |
+| `lesson_started` / `lesson_progress` | Începere lecție sau milestone de progres | **DA (Prioritate 3)** |
+| `hidden_answer_revealed` / `self_assessment` | Autoevaluare „Știam” / „Mai trebuie să repet” | **DA (Prioritate 4)** |
+| `audio_played` / `video_played` | Audiere / vizionare multimedia | **DA (Opțional)** |
+| `lesson_opened` | Navigare la pagina lecției (telemetrie internă) | **NU (Filtrat din Dashboard UI)** |
 
 ---
 
 # 11. Streak
 
-## user_streaks
+## 11.1. Schema & Reguli de Securitate `user_streaks`
+
+Tabela `user_streaks` monitorizează continuitatea zilnică a învățării.
 
 ```text
-user_id             uuid PK
-current_streak      integer DEFAULT 0
-longest_streak      integer DEFAULT 0
+user_id             uuid PK REFERENCES auth.users(id) ON DELETE CASCADE
+current_streak      integer NOT NULL DEFAULT 0
+longest_streak      integer NOT NULL DEFAULT 0
 last_activity_date  date NULL
-updated_at          timestamptz
+updated_at          timestamptz NOT NULL DEFAULT now()
 ```
 
-Activitatea eligibilă trebuie să fie activitate de învățare.
+### Reguli de Securitate & RLS:
+- **READ:** Studentul poate executa `SELECT` **DOAR** pentru propriul rând de streak (`WHERE user_id = auth.uid()`).
+- **WRITE:** Studentul **NU are permisiuni de `INSERT`, `UPDATE` sau `DELETE` direct din client**.
+- `user_streaks` este gestionat și actualizat **exclusiv server-side de către Streak Engine** la validarea unei activități eligibile. Utilizatorul nu poate manipula valorile `current_streak`, `longest_streak` sau `last_activity_date`.
+
+## 11.2. Algoritmul Canonic de Calcul al Streak-ului (Server-Side)
+
+1. **Eligibilitate:** Doar activitățile de învățare efectivă (`progress_percent` actualizat, `lesson_completed`, `quiz_completed`, autoevaluare `hidden_answer`) sunt considerate activități eligibile. Autentificarea sau simpla navigare sunt ignorate.
+2. **Logica de Calcul:**
+```ts
+const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+if (streak.last_activity_date === today) {
+  // Idempotență: activitatea pe ziua de azi a fost deja contorizată. Nu incrementăm.
+  return streak;
+} else if (streak.last_activity_date === yesterday) {
+  // Ziua precedentă este activă -> continuăm seria
+  const newCurrent = streak.current_streak + 1;
+  const newLongest = Math.max(streak.longest_streak, newCurrent);
+  return { current_streak: newCurrent, longest_streak: newLongest, last_activity_date: today };
+} else {
+  // Seria a fost întreruptă sau este prima activitate -> reset / start la 1
+  return { current_streak: 1, longest_streak: Math.max(streak.longest_streak, 1), last_activity_date: today };
+}
+```
 
 ---
 
@@ -658,20 +712,34 @@ Can read:
 - All published metadata;
 - `lesson_blocks` and media for both `free` and `pro` published lessons.
 
-## Student
+## Student (Authenticated)
 
 Can:
-- read permitted content;
-- read/write own profile;
-- read/write own progress;
-- read/write own quiz attempts;
-- read own subscription.
+- read permitted educational content (all published metadata, FREE lesson blocks);
+- read/write **own profile** (`user_id = auth.uid()`);
+- read/write **own lesson progress** (`user_id = auth.uid()`, supus validării de context pe server);
+- read-only **own streak** (`user_id = auth.uid()`, scrierile sunt gestionate exclusiv server-side);
+- read-only **own user activity** (`user_id = auth.uid()`, scrierile sunt gestionate exclusiv server-side);
+- read/write **own quiz attempts** (`user_id = auth.uid()`);
+- read **own subscription status** (`user_id = auth.uid()`).
 
 Cannot:
-- modify published content;
-- access other users' private data;
-- assign own role;
-- change own subscription status.
+- executa operațiuni directe de `INSERT`, `UPDATE` sau `DELETE` din client pe `user_streaks` sau `user_activity`;
+- falsifica progresul sau finalizarea unei lecții fără validare pe server;
+- citi sau modifica înregistrările de progres, streak, activitate sau profil ale altor utilizatori (izolare strictă RLS pe `user_id = auth.uid()`);
+- modifica conținutul educațional publicat;
+- accesa blocurile de conținut `lesson_blocks` ale lecțiilor PRO fără abonament activ;
+- modifica propriul rol sau statutul de abonament în mod direct.
+
+### Progress & Dashboard Authorization Guarantee
+- **Model de date & RLS:**
+  - `lesson_progress`: READ/WRITE own data (cu validare strictă server-side a tranzițiilor de stare și a procentajelor);
+  - `user_activity`: READ own data, WRITE server-side only (generat în trusted flow);
+  - `user_streaks`: READ own data, WRITE server-side only (gestionat de Streak Engine);
+  - Acces la datele altor utilizatori: **COMPLET INTERZIS (ZERO ACCESS)**.
+- Calculele de Global Progress și Subject Progress sunt efectuate pe baza metadatelor lecțiilor publicate (`lessons.status = 'published'`) și a propriilor înregistrări din `lesson_progress`.
+- Numărarea lecțiilor PRO publicate în cadrul numitorului nu expune conținutul lor intern (`lesson_blocks`) sau media privată.
+- RLS-ul PostgreSQL este și rămâne sursa principală, de neocolit, de autorizare server-side.
 
 ## Editor
 
@@ -784,18 +852,240 @@ Protected Student Routes (Requires Auth):
 
 ---
 
-# 23. Dashboard data requirements
+# 23. Dashboard data requirements & contracts
 
-Dashboard needs:
+## 23.1. Arhitectură Agregată de Interogare (`useDashboardData`)
 
-1. current user;
-2. current streak;
-3. latest in-progress lesson;
-4. subject progress;
-5. recent activities;
-6. subscription status.
+Pentru a evita multiple cereri succesive de tip waterfall și a garanta un timp rapid de randare (`LCP < 1.2s`), Dashboard-ul apelează o funcție centralizată de agregare sau rulează interogări paralele optimizate (`Promise.all`):
 
-Do not make six independent blocking requests if data can be aggregated efficiently.
+```ts
+interface DashboardData {
+  profile: Profile;
+  continueLearning: ContinueLearningItem | null;
+  globalProgress: {
+    completedLessons: number;
+    totalPublishedLessons: number;
+    progressPercent: number; // Math.round((completed / total) * 100)
+  };
+  subjectProgress: Array<{
+    subjectId: string;
+    subjectName: string;
+    subjectSlug: string;
+    accentTheme: string;
+    completedLessons: number;
+    totalPublishedLessons: number;
+    progressPercent: number;
+    proLessonsCount: number;
+  }>;
+  streak: {
+    currentStreak: number;
+    longestStreak: number;
+    lastActivityDate: string | null;
+  };
+  recentActivity: Array<UserActivityItem>;
+  subscription: {
+    isPro: boolean;
+    plan: 'free' | 'pro';
+    status: string;
+  };
+}
+```
+
+---
+
+## 23.2. Contract de Date: Continue Learning
+
+### Sursă de Adevăr & Selecție Canonică
+Continue Learning selectează **cea mai recentă lecție cu `status = 'in_progress'`** a elevului autentificat:
+
+```sql
+SELECT
+  lp.lesson_id,
+  lp.progress_percent,
+  lp.last_block_id,
+  lp.updated_at,
+  l.title AS lesson_title,
+  l.slug AS lesson_slug,
+  l.access_level,
+  c.id AS chapter_id,
+  c.title AS chapter_title,
+  c.metadata AS chapter_metadata,
+  s.id AS subject_id,
+  s.name AS subject_name,
+  s.slug AS subject_slug
+FROM lesson_progress lp
+JOIN lessons l ON l.id = lp.lesson_id
+JOIN chapters c ON c.id = l.chapter_id
+JOIN subjects s ON s.id = c.subject_id
+WHERE lp.user_id = auth.uid()
+  AND lp.status = 'in_progress'
+  AND l.status = 'published'
+ORDER BY lp.updated_at DESC
+LIMIT 1;
+```
+
+### Reguli de Randare:
+- **Dacă există rezultat:** Se randează `ContinueLearningCard` cu toate detaliile (materie, operă/capitol, titlu lecție, progres curent, buton CTA către `/lesson/:lessonId`).
+- **Dacă returnează 0 rânduri (Empty State):**
+  - **INTERZIS:** Nu se randează un card gol, nu se selectează prima lecție arbitrară din catalog ca fallback.
+  - **OBLIGATORIU:** Se randează `EmptyState` stilizat ("Începe pregătirea pentru Bac! Alege o materie din catalog.") cu CTA primar către `/catalog`.
+
+---
+
+## 23.3. Contract de Date: Global Progress
+
+### Formula Canonică
+$$\text{Global Progress (\%)} = \text{round}\left( \frac{\text{Lecții publicate cu status 'completed' ale utilizatorului}}{\text{Total lecții publicate pe platformă (FREE + PRO)}} \times 100 \right)$$
+
+### Interogare Denominator (Total Published Lessons):
+```sql
+SELECT COUNT(*)::int AS total_published
+FROM lessons
+WHERE status = 'published';
+```
+*(Include atât lecțiile `free` cât și lecțiile `pro`)*.
+
+### Interogare Numerator (User Completed Lessons):
+```sql
+SELECT COUNT(*)::int AS completed_count
+FROM lesson_progress lp
+JOIN lessons l ON l.id = lp.lesson_id
+WHERE lp.user_id = auth.uid()
+  AND lp.status = 'completed'
+  AND l.status = 'published';
+```
+
+---
+
+## 23.4. Contract de Date: Progress by Subject
+
+Pentru fiecare materie publicată (`subjects.is_published = true`):
+
+### Formula Canonică
+$$\text{Subject Progress (\%)} = \text{round}\left( \frac{\text{Lecții completate din materie}}{\text{Total lecții publicate din materie (FREE + PRO)}} \times 100 \right)$$
+
+### Interogare Date Materie:
+```sql
+SELECT
+  s.id AS subject_id,
+  s.name AS subject_name,
+  s.slug AS subject_slug,
+  s.accent_theme,
+  COUNT(l.id)::int AS total_lessons,
+  COUNT(l.id) FILTER (WHERE l.access_level = 'pro')::int AS pro_lessons,
+  COUNT(lp.id) FILTER (WHERE lp.status = 'completed')::int AS completed_lessons
+FROM subjects s
+JOIN chapters c ON c.subject_id = s.id AND c.is_published = true
+JOIN lessons l ON l.chapter_id = c.id AND l.status = 'published'
+LEFT JOIN lesson_progress lp ON lp.lesson_id = l.id AND lp.user_id = auth.uid()
+WHERE s.is_published = true
+GROUP BY s.id, s.name, s.slug, s.accent_theme, s.sort_order
+ORDER BY s.sort_order ASC;
+```
+
+---
+
+## 23.5. Contract de Date: Streak
+
+```sql
+SELECT current_streak, longest_streak, last_activity_date
+FROM user_streaks
+WHERE user_id = auth.uid();
+```
+- Dacă rândul nu există în baza de date, valorile implicite sunt `current_streak: 0`, `longest_streak: 0`, `last_activity_date: null`.
+- Actualizarea streak-ului se execută la nivel de server/hook doar la finalizarea unei activități pedagogice eligibile.
+
+---
+
+## 23.6. Contract de Date: Recent Activity
+
+```sql
+SELECT
+  ua.id,
+  ua.activity_type,
+  ua.lesson_id,
+  ua.metadata,
+  ua.created_at,
+  l.title AS lesson_title,
+  l.slug AS lesson_slug
+FROM user_activity ua
+LEFT JOIN lessons l ON l.id = ua.lesson_id
+WHERE ua.user_id = auth.uid()
+  AND ua.activity_type IN (
+    'lesson_completed',
+    'quiz_completed',
+    'lesson_started',
+    'lesson_progress',
+    'hidden_answer_revealed',
+    'self_assessment'
+  )
+ORDER BY ua.created_at DESC
+LIMIT 10;
+```
+- Telemetria de navigare (`lesson_opened`) este **exclusă** din interogarea pentru Dashboard.
+
+---
+
+## 23.7. Card Informativ: PRO Status
+
+- Verifică `isPro` prin statutul abonamentului din `subscriptions` sau funcția `private.is_pro_user(auth.uid())`.
+- **FREE Account:** Randează card cu beneficii PRO + CTA către `/pro`.
+- **PRO Account:** Randează card de membru activ cu badge distinctiv.
+- *(Plățile efective Stripe și gestiunea facturării rămân în sarcina Sprintului dedicat Stripe)*.
+
+---
+
+## 23.8. Specificații Tehnice Skeleton Loading (Obligatoriu)
+
+> [!IMPORTANT]
+> **ESTE STRICT INTERZIS UN SPINNER CENTRAL CARE LASĂ PAGINA GOALĂ**
+
+Componenta de încărcare a Dashboard-ului afișează o structură compozită de skeleton-uri (`animate-pulse`):
+1. **Header Skeleton:**
+   - Avatar cerc: `w-12 h-12 rounded-full bg-surface-elevated`
+   - Nume & email: 2 linii dreptunghiulare (`w-48 h-6`, `w-32 h-4`)
+2. **Continue Learning Card Skeleton:**
+   - Card mare dreptunghiular (`h-44 w-full rounded-2xl bg-surface`)
+   - Linii interne pentru tag materie, titlu lecție, bară de progres și buton CTA
+3. **Global Progress & Streak Grid Skeleton:**
+   - Două cutii (`h-36 rounded-2xl bg-surface`) cu placeholder circular și badge streak
+4. **Subject Progress Skeletons:**
+   - 2 carduri egale (`h-32 rounded-2xl bg-surface`) cu bare scheletice
+5. **Recent Activity List Skeleton:**
+   - 3 rânduri compuse (`h-12 w-full rounded-xl bg-surface-elevated`)
+
+Fluxul stărilor de încărcare:
+- `Skeleton` $\rightarrow$ `Loaded (Success)`
+- `Skeleton` $\rightarrow$ `Empty (pentru utilizatori noi)`
+- `Skeleton` $\rightarrow$ `Error (cu componentă ErrorState și buton Retry)`
+
+---
+
+## 23.9. Matricea de Stări ale Dashboard-ului
+
+| Stare | Condiție Declanșare | Comportament UI |
+| :--- | :--- | :--- |
+| **Loading** | Datele se preiau din Supabase | Afișare schelet complet (Skeleton Loading) |
+| **Empty (Utilizator Nou)** | 0 lecții începute, 0 activități | Continue Learning Empty State + Progress 0% + CTA `/catalog` |
+| **Normal / Success** | Date agregate prezente | Randează toate cele 6 module populate |
+| **Error** | Eșec rețea / interogare DB | `ErrorState` integrat cu mesaj descriptiv și buton `Reîncearcă` |
+| **Locked / PRO Promo** | Utilizator FREE | Afișează badge-uri PRO și indicatori educaționali fără a bloca interfața |
+
+---
+
+## 23.10. Specificații Ergonomice Responsive
+
+- **Mobile Viewport (< 768px):**
+  - O singură coloană verticală (`flex flex-col gap-4`);
+  - Carduri întinse pe toată lățimea (`w-full`);
+  - Touch targets de minimum 44px;
+  - Ierarhie: Salut $\rightarrow$ Continue Learning $\rightarrow$ Progres & Streak $\rightarrow$ Materii $\rightarrow$ Activitate $\rightarrow$ PRO.
+- **Desktop Viewport (≥ 1024px):**
+  - Layout pe grid structurat pe 12 coloane (`grid grid-cols-12 gap-6`);
+  - Continue Learning ocupă poziția centrală dominantă (8 coloane);
+  - Streak & PRO Status poziționate strategic în panoul lateral (4 coloane);
+  - Progress by Subject desfășurat pe 2 coloane mari (6 + 6 coloane);
+  - Spațiere aerisită, culori dark-first, text lizibil conform design tokens.
 
 ---
 
@@ -861,29 +1151,50 @@ The player should only render if relevant media exists.
 
 ---
 
-# 26. Lesson progress behavior
+# 26. Lesson progress behavior & lifecycle
 
-When lesson opens:
+## 26.1. Fluxul de Stare al Progresului în Lecție
 
 ```text
-if no progress:
-    create in_progress
-else:
-    load progress
+[Utilizator deschide lecția]
+          │
+          ▼
+Verificare lesson_progress existent
+          │
+  ┌───────┴────────────────────────┐
+  ▼                                ▼
+[Fără înregistrare]           [Înregistrare existentă]
+  │                                │
+  ▼                                ▼
+Creează in_progress           Restaurează last_block_id
+la prima interacțiune         și scroll automat la poziție
+  │                                │
+  └───────────────┬────────────────┘
+                  │
+                  ▼
+          [Parcurgere conținut]
+                  │
+                  ▼ (debounced / pe măsură ce blocurile devin vizibile)
+        Actualizare last_block_id
+        Recalculare progress_percent (0-99%)
+                  │
+                  ▼
+        [Finalizare conținut / Click „Finalizează lecția”]
+                  │
+                  ▼
+        status = 'completed'
+        progress_percent = 100
+        completed_at = now()
+                  │
+        ┌─────────┴─────────┐
+        ▼                   ▼
+Logare user_activity    Actualizare user_streaks
+(lesson_completed)      (idempotent pe ziua curentă)
 ```
 
-During reading:
-- update progress at meaningful intervals;
-- update last block.
-
-At completion:
-- status = completed;
-- progress = 100;
-- completed_at = now;
-- update activity;
-- update streak.
-
-Do not write to database on every scroll event.
+## 26.2. Reguli Tehnice de Execuție:
+- **Debouncing:** Modificările intermediare de progres sunt transmise la un interval controlat (ex: 1–2 secunde sau la schimbarea blocului activ), **niciodată pe fiecare eveniment brut de `window.scroll`**.
+- **Idempotență:** Marcarea ca `completed` a unei lecții deja finalizate anterior nu recalculează streak-ul și nu generează evenimente duplicate în `user_activity`.
 
 ---
 
@@ -1140,7 +1451,20 @@ Examples:
 ```text
 ui/Button
 ui/Card
+ui/Badge
+ui/ProgressBar
+ui/ProgressRing
+ui/Skeleton
+ui/EmptyState
+ui/ErrorState
 ui/Modal
+
+dashboard/ContinueLearningCard
+dashboard/GlobalProgressCard
+dashboard/StreakCard
+dashboard/SubjectProgressCard
+dashboard/RecentActivityList
+dashboard/ProStatusCard
 
 lesson/LessonRenderer
 lesson/LessonBlock
@@ -1320,69 +1644,68 @@ AI must not:
 
 ---
 
-# 46. Acceptance criteria for first technical milestone
+# 46. Acceptance criteria for technical milestones
 
-Milestone 1 is complete when:
+## 46.1. Content, Auth & RLS Access Control (Milestones 1 & 2)
 
-- project runs locally;
-- Git repository exists;
-- Supabase project connected;
-- auth works;
-- profile is created;
-- roles exist;
-- subjects/chapters/lessons tables exist;
-- RLS is enabled;
-- one published lesson can be read;
-- one protected lesson cannot be read by a FREE user.
+- Project runs locally and Supabase connection is established;
+- Auth, profile creation, and user roles work as specified;
+- Unauthenticated requests to educational routes (`/catalog`, `/catalog/:subject`, `/lesson/:lessonId`) are rejected by UI guards and database RLS;
+- Published lesson metadata is readable by authenticated users;
+- Non-PRO student receives `PRO_REQUIRED` status and PRO gate UI on PRO lessons without leaking blocks;
+- PRO student receives full access to FREE and PRO lesson blocks.
+
+## 46.2. Dashboard, Progress, Streak & Activity (Milestone 3)
+
+1. **Authenticated Student Access:** Authenticated student can open `/dashboard` and view all aggregated personal data.
+2. **Guest Protection:** Guest user cannot open `/dashboard` and is redirected to `/login`.
+3. **Continue Learning Selection:** Continue Learning card selects the latest incomplete `in_progress` lesson (`ORDER BY updated_at DESC LIMIT 1`).
+4. **New User Empty State:** New user with zero in-progress lessons receives a premium Empty State with CTA linking to `/catalog` (no empty broken card, no arbitrary catalog fallback).
+5. **Global Progress Total Denominator:** Global Progress formula includes all published lessons (both `FREE` and `PRO`) in the denominator.
+6. **Subject Progress Total Denominator:** Subject Progress formula includes all published lessons for that subject (both `FREE` and `PRO`) in the denominator.
+7. **Progress Lifecycle:** Parcurgerea lecției actualizează `last_block_id` și `progress_percent`; finalizarea marchează lecția ca fiind `completed`.
+8. **Streak Eligible Activities:** Streak engine counts only eligible learning activity (real lesson progress, lesson completion, quiz completion, self-assessment); app opens, logins, and browsing are excluded.
+9. **Streak Daily Idempotency:** Multiple eligible learning activities on the same calendar day do not increment streak repeatedly.
+10. **Recent Activity Relevant Feed:** Recent Activity displays relevant learning events (`lesson_completed`, `quiz_completed`, progress, self-assessment); internal `lesson_opened` telemetry is filtered out.
+11. **PRO Status Representation:** PRO status card accurately reflects account plan (FREE with upgrade CTA vs PRO active member badge) without requiring Stripe checkout in this milestone.
+12. **Mandatory Skeleton Loading:** Complete skeleton layouts (header, continue learning, progress, streak, subjects, activity, PRO card) are displayed while data is resolving; no blank screen spinner.
+13. **Dashboard State Matrix:** Dashboard handles Loading (skeleton), Empty (new user), Error (retryable ErrorState), Success/Normal, and Locked/PRO states.
+14. **Security & RLS Isolation:** User can read only their own data (progress, streak, activity, subscription) via RLS; `lesson_progress` is updated with strict server-side validation, while `user_streaks` and `user_activity` are written and managed exclusively server-side.
+15. **Responsive Ergonomics:** Layout adapts fluidly on mobile (single vertical column, full-width cards, touch targets ≥ 44px) and desktop (spacious grid layout, clear hierarchy).
 
 ---
 
-# 47. MVP build order
+# 47. MVP build order (Canonical Roadmap)
 
-## Step 1
-Repository + project foundation.
+## Step 1 — Foundation
+Repository, environment, project setup, design tokens, basic routing.
 
-## Step 2
-Supabase + auth.
+## Step 2 — Auth + Security
+Supabase Auth, profiles, user_roles, route guards, RLS policies.
 
-## Step 3
-Database schema + migrations + RLS.
+## Step 3 — Lesson Engine
+Lessons schema, `lesson_blocks`, block renderer, drawer, adjacent navigation.
 
-## Step 4
-Admin content CRUD.
+## Step 4 — Catalog
+`/catalog` page, `/catalog/:subject` page, works/chapters in Accordion format, FREE/PRO indicators.
 
-## Step 5
-Lesson block editor.
+## Step 5 — Dashboard + Progress + Streak + Activity (Milestone 3)
+`/dashboard`, `lesson_progress`, `user_streaks`, `user_activity`, Continue Learning, Global & Subject Progress engines, Skeleton Loading, State handling.
 
-## Step 6
-Student catalog.
+## Step 6 — Quiz Engine
+`quizzes`, `quiz_questions`, `quiz_options`, `quiz_attempts`, self-assessment.
 
-## Step 7
-Lesson renderer.
+## Step 7 — Stripe / PRO subscriptions
+Stripe Checkout, webhook listener, subscription sync, billing portal.
 
-## Step 8
-Progress.
+## Step 8 — Admin CMS
+`/admin` portal, 3-column block editor, Draft -> Review -> Publish workflow, media library.
 
-## Step 9
-Dashboard.
+## Step 9 — AI content pipeline
+PDF text extractor, block proposal generator, human review tooling.
 
-## Step 10
-FREE/PRO.
-
-## Step 11
-Stripe.
-
-## Step 12
-Learning blocks + quiz.
-
-## Step 13
-Media polish.
-
-## Step 14
-Responsive + accessibility.
-
-## Step 15
-Testing + deployment.
+## Step 10 — Final Polish / Launch
+Micro-interactions, accessibility audit, performance tuning, SEO, GDPR/legal, production launch.
 
 ---
 

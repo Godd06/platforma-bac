@@ -365,66 +365,163 @@ O imagine/audio/video poate fi folosită în mai multe lecții.
 
 # 9. Progress
 
-## `lesson_progress`
+## 9.1. Modelul de Date `lesson_progress`
+
+`lesson_progress` este sursa principală și unică de adevăr pentru progresul unui utilizator la nivel de lecție.
 
 - id
 - user_id
 - lesson_id
-- status
-- progress_percent
-- last_block_id
-- started_at
-- completed_at
-- updated_at
+- status (`not_started`, `in_progress`, `completed`)
+- progress_percent (integer 0–100)
+- last_block_id (uuid nullable)
+- started_at (timestamptz nullable)
+- completed_at (timestamptz nullable)
+- updated_at (timestamptz)
 
-Status:
-- not_started
-- in_progress
-- completed
+Statusuri canonice:
+- `not_started`: lecția nu a fost începută de elev;
+- `in_progress`: elevul a început efectiv parcurgerea conținutului educațional;
+- `completed`: elevul a parcurs conținutul relevant până la final și a finalizat lecția.
 
-## Regula
+Reguli de actualizare a progresului & Validare Server-Side:
+- Utilizatorul autentic își poate citi și transmite propriul progres (`user_id = auth.uid()`), dar server-side se validează strict:
+  1. `user_id = auth.uid()`;
+  2. `lesson_id` aparține unei lecții existente și accesibile;
+  3. `progress_percent` este valid (0–100);
+  4. Tranzițiile de status sunt canonice (`not_started` $\rightarrow$ `in_progress` $\rightarrow$ `completed`);
+  5. `last_block_id` aparține lecției respective;
+  6. `completed_at` este setat doar la finalizarea validă a conținutului.
+- Simpla deschidere a paginii lecției **NU** marchează lecția ca fiind `completed`.
+- Clientul **NU** poate falsifica o lecție completată printr-un request arbitrar (`status = 'completed'`, `progress_percent = 100`) fără validarea contextului pe server.
+- Utilizatorul **NU** poate modifica sau citi progresul altui utilizator.
 
-„Continuă de unde ai rămas” se bazează pe ultima lecție activă + ultimul punct relevant de progres.
+## 9.2. Progress Global — Regulă Canonică și Formulă
+
+Progresul Global reflectă parcursul complet al elevului în raport cu întregul curriculum publicat pe platformă.
+
+**Formula Canonică:**
+$$\text{Global Progress (\%)} = \left( \frac{\text{Număr lecții publicate completate}}{\text{Total lecții publicate pe platformă}} \right) \times 100$$
+
+> [!IMPORTANT]
+> **REGULĂ DE AUR: TOATE LECȚIILE PUBLICATE (FREE + PRO) INTRĂ ÎN DENOMINATOR**
+> Atât lecțiile `FREE`, cât și lecțiile `PRO` publicate sunt incluse în numitorul formulei. Un utilizator cu cont `FREE` **NU** va primi un procentaj artificial calculat doar din lecțiile pe care le poate deschide.
+>
+> *Exemplu:* Dacă există 50 de lecții publicate în total pe platformă (30 FREE și 20 PRO), iar un elev a completat 17 lecții, Progresul Global este:
+> $$\frac{17}{50} \times 100 = 34\%$$
+>
+> **Rol Pedagogic și de Orientare:** Această regulă oferă o imagine clară, realistă și transparentă asupra întregii materii de Bacalaureat și conștientizează valoarea parcursului complet PRO, fără manipulare.
+>
+> **Securitate & RLS:** Indicatorul de Progres Global este un calcul strict vizual / informativ și **NU modifică regulile de autorizare RLS**. Lecțiile PRO rămân strict protejate la nivel de server.
+
+## 9.3. Progress pe Materie (Progress by Subject) — Regulă și Formulă
+
+Progresul pentru o anumită materie (Subject) se calculează relativ la TOATE lecțiile publicate din acea materie.
+
+**Formula Canonică:**
+$$\text{Subject Progress (\%)} = \left( \frac{\text{Număr lecții publicate completate din materie}}{\text{Total lecții publicate din acea materie}} \right) \times 100$$
+
+Și la nivel de materie:
+- **FREE + PRO** sunt ambele incluse în numitor (`total published lessons in subject`).
+- *Exemplu Română:* 12 lecții completate dintr-un total de 40 de lecții publicate = $30\%$.
+- Elevul vede progresul real prin programa materiei chiar dacă o parte din lecții sunt PRO.
+- Nu se acordă acces la conținutul PRO prin calculul procentual.
+
+## 9.4. PRO Progression / Conversion UX
+
+Afișarea progresului comunică valoarea accesului PRO într-un mod elegant, organic și discret:
+- Elevul vede: *Română: 30% (12 / 40 lecții completate)*.
+- Se afișează un indicator contextual discret: *"X lecții sunt disponibile cu planul PRO"* alături de un CTA clar: *"Devino PRO"*.
+- Dashboard-ul rămâne un spațiu de învățare calm și util pedagogic, fără tactici agresive de vânzare.
 
 ---
 
 # 10. Activity
 
-`user_activity`
+## 10.1. Modelul de Date `user_activity`
+
+Tabela `user_activity` înregistrează acțiunile relevante de învățare pentru analytics, istoricul utilizatorului și afișarea în UI.
 
 - id
 - user_id
 - activity_type
-- lesson_id
-- metadata_json
-- created_at
+- lesson_id (nullable)
+- metadata_json (jsonb)
+- created_at (timestamptz)
 
-Exemple:
-- lesson_opened
-- lesson_completed
-- quiz_completed
-- audio_played
-- video_played
-- subscription_started
+Tipuri de activități canonice:
+- `lesson_completed` (completarea unei lecții)
+- `quiz_completed` (finalizarea unui quiz de verificare)
+- `lesson_started` / `lesson_progress` (progres semnificativ într-o lecție)
+- `hidden_answer_revealed` / `self_assessment` (interacțiuni de autoevaluare: „Știam” / „Mai trebuie să repet”)
+- `audio_played` / `video_played` (audierea/vizionarea materialelor multimedia)
+- `lesson_opened` (deschiderea paginii de lecție — păstrat intern pentru telemetrie)
 
-Nu se păstrează inutil fiecare secundă de citire.
+## 10.2. Reguli de Securitate și Dashboard (Recent Activity)
+
+- **Securitate & RLS:**
+  - Studentul poate **CITI DOAR propriile activități** (`SELECT WHERE user_id = auth.uid()`);
+  - Studentul **NU poate face INSERT direct din client** în `user_activity`;
+  - Studentul **NU poate face UPDATE sau DELETE** pe înregistrările de activitate;
+  - Evenimentele `user_activity` sunt generate **exclusiv pe server / trusted flow** în urma validării unei acțiuni educaționale reale (ex: finalizare lecție, trimitere răspuns quiz). Clientul nu poate trimite evenimente falsificate.
+- **Filtrare UI:**
+  - Dashboard-ul afișează **doar activitățile cu valoare pedagogică reală**, ordonate descrescător după `created_at DESC` (limitat la ultimele 5–10 evenimente).
+  - **Ierarhia de prioritizare în UI:**
+    1. `lesson_completed`
+    2. `quiz_completed`
+    3. `lesson_progress` / milestone de învățare
+    4. `hidden_answer` / autoevaluare relevantă
+  - `lesson_opened` este un eveniment intern de telemetrie și este **filtrat din fluxul Recent Activity** de pe Dashboard pentru a nu polua interfața.
+  - Nu se colectează date la fiecare secundă de citire; stream-ul rămâne optimizat și concentrat pe acțiuni semnificative.
 
 ---
 
 # 11. Streak
 
-`user_streaks`
+## 11.1. Modelul de Date `user_streaks`
 
-- user_id
-- current_streak
-- longest_streak
-- last_activity_date
-- updated_at
+Tabela `user_streaks` monitorizează constanța învățării zilnice a elevului.
 
-Streak-ul se actualizează pe baza activității eligibile.
+- user_id (uuid PK, FK către auth.users)
+- current_streak (integer, default 0)
+- longest_streak (integer, default 0)
+- last_activity_date (date nullable)
+- updated_at (timestamptz)
 
-Regulă propusă:
-o zi contează când elevul efectuează o activitate de învățare relevantă, nu doar când deschide aplicația.
+## 11.2. Reguli de Securitate și Calcul Canonic pentru Streak
+
+- **Securitate & RLS:**
+  - Studentul poate **CITI DOAR propriul streak** (`SELECT WHERE user_id = auth.uid()`);
+  - Studentul **NU poate face INSERT, UPDATE sau DELETE direct din client** în `user_streaks`;
+  - Tabela `user_streaks` este gestionată și actualizată **exclusiv server-side de către Streak Engine**, în urma procesării unei activități educaționale eligibile validate.
+  - Clientul **NU poate manipula sau falsifica** `current_streak`, `longest_streak` sau `last_activity_date`.
+
+Streak-ul reprezintă **continuitatea activității reale de învățare**, nu simpla autentificare sau deschidere a platformei.
+
+**Ce NU contează pentru Streak:**
+- Autentificarea (login);
+- Deschiderea aplicației;
+- Deschiderea Dashboard-ului;
+- Simpla navigare prin pagini;
+- Deschiderea Catalogului sau a unei materii.
+
+**Ce CONTEAZĂ ca activitate eligibilă de Streak:**
+- Înregistrarea de progres real într-o lecție (`progress_percent` actualizat prin parcurgerea conținutului);
+- Completarea unei lecții (`lesson_completed`);
+- Completarea unui quiz de verificare (`quiz_completed`);
+- Interacțiuni de învățare activă în blocul `hidden_answer` (marcare „Știam” / „Mai trebuie să repet”).
+
+**Algoritmul Canonic de Calcul și Actualizare (Server-Side):**
+1. Când utilizatorul efectuează o activitate eligibilă la data curentă `today`:
+   - Dacă `last_activity_date == today`: Activitatea de astăzi a fost deja contorizată. **NU se incrementează din nou** (mai multe activități în aceeași zi nu cresc streak-ul repetat).
+   - Dacă `last_activity_date == yesterday` (ziua precedentă calendaristică): Streak-ul continuă fără întrerupere:
+     - `current_streak = current_streak + 1`;
+     - `longest_streak = max(longest_streak, current_streak)`;
+     - `last_activity_date = today`.
+   - Dacă `last_activity_date < yesterday` sau `last_activity_date IS NULL`: Seria a fost întreruptă sau începe acum:
+     - `current_streak = 1`;
+     - `longest_streak = max(longest_streak, 1)`;
+     - `last_activity_date = today`.
 
 ---
 
@@ -647,22 +744,145 @@ Crearea unei lecții din template copiază structura, nu leagă lecția permanen
 
 # 19. Dashboard UX
 
-## Prioritatea #1
+## 19.1. Rolul Canonic al Dashboard-ului
 
-„Continuă de unde ai rămas”.
+Dashboard-ul (`/dashboard`) este centrul operațional și emoțional al experienței studentului pe platformă.
 
-Structură:
+> [!IMPORTANT]
+> **RUTE INTERZISE: FĂRĂ `/progress` ȘI FĂRĂ `/profile`**
+> Nu se creează pagini separate `/progress` sau `/profile`.
+> - Progresul global și pe materii este integrat direct în Dashboard.
+> - Informațiile de profil și setările utilizatorului aparțin rutei `/settings` și componentei de profil din Dashboard.
 
-1. Header
-2. Continue Learning
-3. Streak
-4. Progress by subject
-5. Recent activity
-6. PRO status / upgrade
+## 19.2. Structura și Ierarhia Vizuală a Dashboard-ului
 
-Nu creăm o pagină separată de progres.
+Dashboard-ul conține 6 module esențiale:
 
-Nu creăm o pagină separată de profil.
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ Header: Salut personalizat + Avatar + Status Plan (FREE / PRO)         │
+├────────────────────────────────────────────────────────────────────────┤
+│ 1. CONTINUE LEARNING (Card Principal de Acțiune)                       │
+├──────────────────────────────────┬─────────────────────────────────────┤
+│ 2. GLOBAL PROGRESS & STREAK      │ 3. PRO STATUS / UPGRADE BANNER      │
+│ - Inel / Bară progres global     │ - Detalii plan curent               │
+│ - Zile consecutive (Streak)      │ - Beneficii & CTA Upgrade           │
+├──────────────────────────────────┴─────────────────────────────────────┤
+│ 4. PROGRESS BY SUBJECT (Progres pe Materii: Română, Istorie, etc.)     │
+│ - Carduri interactive cu procentaj total (FREE + PRO în denominator)   │
+├────────────────────────────────────────────────────────────────────────┤
+│ 5. RECENT ACTIVITY (Istoric Acțiuni Relevante de Învățare)             │
+│ - Lista ultimelor activități pedagogice (lecții, quiz-uri, repetiții)  │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+## 19.3. Modulul 1: Continue Learning (Continuă de unde ai rămas)
+
+**Regula Canonică de Selecție:**
+`Continue Learning` selectează **cea mai recentă lecție `in_progress` a utilizatorului**, ordonată strict după:
+$$\text{SELECT * FROM lesson\_progress WHERE user\_id = auth.uid() AND status = 'in\_progress' ORDER BY updated\_at DESC LIMIT 1}$$
+
+- **Dacă există o lecție `in_progress`:**
+  - Afișează materia (Subject name & badge);
+  - Afișează capitolul / opera literară;
+  - Afișează titlul lecției;
+  - Afișează procentul curent (`progress_percent`) și bara de progres;
+  - Indică ultimul punct de reper parcurs (`last_block_id`);
+  - CTA principal de navigare: `Continuă lecția` (navighează direct la `/lesson/:lessonId`).
+- **Dacă NU există nicio lecție `in_progress` (Stare Empty / Utilizator Nou):**
+  - **NU se afișează un card gol sau spart.**
+  - **NU se selectează arbitrar prima lecție din catalog ca fallback.**
+  - Se afișează un **Empty State Premium**, cald și motivant (ex: *"Ești gata să începi pregătirea pentru Bac? Alege o materie și începe prima ta lecție."*).
+  - CTA primar: `Explorează Catalogul` (navighează la `/catalog`).
+
+## 19.4. Modulul 2: Global Progress & Streak
+
+### Global Progress
+- Afișat ca `ProgressRing` sau `ProgressBar` de impact;
+- Calculat cu formula canonică: $\frac{\text{completate}}{\text{total publicate}} \times 100$;
+- **FREE + PRO** sunt incluse în denominator;
+- Oferă transparență totală asupra traseului către nota 10 la Bac.
+
+### Streak Engine
+- Afișează numărul de zile consecutive de învățare activă (`current_streak`);
+- Indicator vizual dinamic (flacără / icon de streak activ);
+- Evidențiază cel mai bun record (`longest_streak`);
+- Alimentat exclusiv de activități pedagogice eligibile (progres real, lecție completată, quiz completat, autoevaluare).
+
+## 19.5. Modulul 3: Progress by Subject
+
+- Carduri dedicate pentru fiecare materie publicată (`Română`, `Istorie` etc.);
+- Afișează procentul de acoperire al materiei: $\frac{\text{completate în materie}}{\text{total publicate în materie}} \times 100$;
+- Afișează raportul numeric (ex: `12 / 40 lecții completate`);
+- Indicator discret de conversie PRO: *"X lecții disponibile cu PRO"* + CTA *"Devino PRO"*;
+- Click pe card redirecționează către materia respectivă (`/catalog/:subject`).
+
+## 19.6. Modulul 4: Recent Activity
+
+- Afișează ultimele 5–10 activități semnificative pedagogic;
+- Ordonare `created_at DESC`;
+- Iconițe și etichete clare pentru:
+  - Lecție finalizată (`lesson_completed`);
+  - Quiz finalizat cu scor (`quiz_completed`);
+  - Reper de progres atins (`lesson_progress`);
+  - Autoevaluare `hidden_answer` („Știam” / „Mai trebuie să repet”);
+- Telemetria de navigare (`lesson_opened`) este ascunsă pentru a menține lista curată și relevantă.
+- Pentru un utilizator fără activitate: Empty State discret *"Activitățile tale recente vor apărea aici pe măsură ce înveți."*.
+
+## 19.7. Modulul 5: PRO Status & Monetizare
+
+- **Pentru utilizatori FREE:**
+  - Card elegant de status: `Plan Gratuit`;
+  - Prezentare sintetică a beneficiilor PRO (toate eseurile, sintezele audio, quiz-urile complete);
+  - CTA distinct: `Treci la PRO` (navighează la `/pro`).
+- **Pentru utilizatori PRO:**
+  - Card de confirmare status: `Student PRO Activ` cu badge auriu / accent;
+  - Recunoașterea accesului nelimitat.
+- *Notă de implementare:* Stripe Checkout, Billing Portal și Webhooks sunt rezervate pentru milestone-ul dedicat plăților. În Milestone 3 se construiește doar cardul informativ de stare.
+
+## 19.8. Skeleton Loading — Cerință Oficială Obligatorie
+
+> [!IMPORTANT]
+> **SKELETON LOADING ESTE O CERINȚĂ STRICTĂ PENTRU DASHBOARD**
+> Este strict interzisă utilizarea unui simplu spinner pe ecran alb/gol în timpul încărcării datelor.
+
+În timpul preluării datelor asincrone din Supabase, interfața trebuie să afișeze o structură skeleton fidelă layout-ului final:
+1. **Header Skeleton:** placeholder pentru avatar, titlu și badge;
+2. **Continue Learning Skeleton:** card mare cu pulse animation pentru titlu, progres și buton;
+3. **Progress & Streak Skeleton:** placeholder circular/bară pentru progres și cutie pentru streak;
+4. **Subject Progress Skeleton:** grid de 2 carduri de materii cu bare de progres scheletice;
+5. **Recent Activity Skeleton:** listă de 3–4 rânduri scheletice cu icon și text placeholders;
+6. **PRO Card Skeleton:** container dreptunghiular cu pulse subtil.
+
+Tranziții de stare:
+- `Skeleton` $\rightarrow$ `Loaded (Normal / Success)`
+- `Skeleton` $\rightarrow$ `Empty (pentru secțiuni fără date)`
+- `Skeleton` $\rightarrow$ `Error (cu ErrorState și buton de reîncercare)`
+
+## 19.9. State Design pe Dashboard
+
+Dashboard-ul tratează exhaustiv toate stările posibile:
+- **Loading State:** Skeleton-uri complete pe toate modulele;
+- **Empty State (Utilizator Nou):**
+  - Continue Learning: card primitor cu îndrumare spre Catalog;
+  - Progress: inel la 0% cu încurajare;
+  - Streak: 0 zile cu mesaj explicativ („Finalizează o lecție pentru a începe seria”);
+  - Recent Activity: mesaj liniștit de debut;
+- **Error State:** componentă `ErrorState` integrată, cu mesaj prietenos și buton de `Reîncearcă`;
+- **Success / Normal State:** toate datele agregate și afișate coerent;
+- **Locked / PRO State:** diferențierea nativă a cardurilor între FREE și PRO.
+
+## 19.10. Responsive Design & Ergonomie
+
+- **Pe Mobile (< 768px):**
+  - Layout pe o singură coloană verticală;
+  - Păstrarea exactă a aceleiași ierarhii (Header $\rightarrow$ Continue Learning $\rightarrow$ Progress/Streak $\rightarrow$ Subjects $\rightarrow$ Recent Activity $\rightarrow$ PRO);
+  - Carduri full-width cu padding adaptat (16px);
+  - Touch targets de minimum 44x44px pentru toate butoanele și acțiunile.
+- **Pe Desktop (≥ 1024px):**
+  - Layout compus pe grid armonios cu spațiere generoasă (gap 24–32px);
+  - Ierarhie vizuală clară: acțiunea principală (Continue Learning) este vizibilă imediat without excessive scrolling;
+  - Design calm, orientat spre studiu, fără animații obositoare.
 
 ---
 
@@ -837,6 +1057,7 @@ Biblioteca inițială:
 - Avatar
 - ProgressBar
 - ProgressRing
+- Skeleton
 - Input
 - SearchInput
 - Select
@@ -859,8 +1080,11 @@ Componente de produs:
 - ChapterCard
 - LessonCard
 - ContinueLearningCard
+- GlobalProgressCard
 - StreakCard
 - ProgressSubjectCard
+- RecentActivityList
+- ProStatusCard
 - LessonNavigation
 - LessonOutline
 - LessonBlockRenderer
@@ -908,16 +1132,20 @@ Nu construim doar „happy path”.
 ## Student
 
 Poate:
-- vedea conținutul permis;
+- vedea conținutul permis (metadata tuturor lecțiilor publicate, conținutul lecțiilor FREE);
 - modifica propriul profil;
-- vedea propriul progres;
+- citi și transmite propriul progres (`lesson_progress`, cu validare strictă server-side);
+- citi propriul streak (`user_streaks`, read-only pentru client);
+- citi propriul istoric de activitate (`user_activity`, read-only pentru client);
 - vedea propriul abonament.
 
 Nu poate:
-- modifica lecții;
-- modifica progresul altui utilizator;
-- accesa date admin;
-- accesa conținut PRO fără abonament.
+- insera, modifica sau șterge direct înregistrări în `user_streaks` sau `user_activity` (gestionate exclusiv server-side);
+- falsifica progresul sau finalizarea lecțiilor fără validare pe server;
+- modifica lecții sau conținut educațional;
+- accesa sau modifica progresul, streak-ul sau activitatea altui utilizator;
+- accesa date admin sau roluri;
+- accesa conținut PRO fără abonament activ.
 
 ## Editor
 
@@ -1066,7 +1294,7 @@ MVP-ul este gata când un elev poate:
 2. intra în Dashboard;
 3. vedea Catalogul;
 4. intra într-o materie;
-5. intra într-un capitol;
+5. explora operele/capitolele din pagina materiei și poate deschide lecțiile asociate;
 6. deschide o lecție;
 7. parcurge lecția;
 8. folosi cuprinsul;
@@ -1115,77 +1343,45 @@ Acestea pot apărea ulterior.
 
 ---
 
-# 37. Ordinea efectivă de dezvoltare
+# 37. Ordinea efectivă de dezvoltare (Canonical Roadmap)
 
-## Sprint 0 — Foundation
-- repository;
-- environment;
-- project setup;
-- design tokens;
-- routing;
-- Git.
+## Pasul 1 — Foundation
+- repository, environment, project setup, design tokens, routing de bază.
 
-## Sprint 1 — Auth + DB
-- Supabase;
-- auth;
-- profiles;
-- roles;
-- schema inițială;
-- RLS.
+## Pasul 2 — Auth + Security
+- Supabase Auth, profiles, user_roles, securitate și protecție rute.
 
-## Sprint 2 — Admin content
-- subjects;
-- chapters;
-- lessons;
-- blocks;
-- editor;
-- templates.
+## Pasul 3 — Lesson Engine
+- schema lecții, blocuri de conținut (`lesson_blocks`), lesson renderer, audio/video drawer, navigare adiacentă.
 
-## Sprint 3 — Student catalog
-- dashboard;
-- catalog;
-- subject;
-- chapter.
+## Pasul 4 — Catalog
+- pagina `/catalog`, pagina materiei `/catalog/:subject`, structură opere/capitole în format Accordion, acces `FREE` / `PRO 🔒`.
 
-## Sprint 4 — Lesson
-- lesson renderer;
-- drawer;
-- media;
-- navigation.
+## Pasul 5 — Dashboard + Progress + Streak + Activity (Milestone 3)
+- Dashboard centralizat `/dashboard`;
+- Modul `Continue Learning` (cea mai recentă lecție `in_progress`);
+- Modul `Global Progress` (procentaj din toate lecțiile publicate FREE + PRO);
+- Modul `Progress by Subject` (procentaj din toate lecțiile materiei FREE + PRO);
+- Modul `Streak Engine` (zile consecutive bazate exclusiv pe activitate reală de învățare);
+- Modul `Recent Activity` (filtrare evenimente pedagogice relevante);
+- Modul `PRO Status` (card informativ stadiu plan FREE / PRO);
+- `Skeleton Loading` obligatoriu pe toate modulele;
+- Gestionare completă a stărilor (Loading, Empty, Error, Success, Locked).
 
-## Sprint 5 — Progress
-- progress;
-- continue learning;
-- streak;
-- activity.
+## Pasul 6 — Quiz Engine
+- quizzes, quiz_questions, quiz_options, quiz_attempts, autoevaluare interactivă.
 
-## Sprint 6 — FREE/PRO
-- access control;
-- ProGate;
-- upgrade page.
+## Pasul 7 — Stripe / PRO subscriptions
+- integrare Stripe Checkout, webhook serverless, sincronizare tabele abonamente, portal client.
 
-## Sprint 7 — Payments
-- Stripe;
-- webhook;
-- subscription sync.
+## Pasul 8 — Admin CMS
+- panou administrativ `/admin`, editor vizual de blocuri pe 3 coloane, flux Draft -> Review -> Publish, media library.
 
-## Sprint 8 — Learning
-- hidden answer;
-- quiz;
-- recap.
+## Pasul 9 — AI content pipeline
+- pipeline extracție PDF, propunere structură blocuri, asistență umană pentru conținut.
 
-## Sprint 9 — AI content
-- PDF pipeline;
-- draft generation;
-- review.
-
-## Sprint 10 — Polish
-- animations;
-- accessibility;
-- performance;
-- SEO;
-- security;
-- analytics.
+## Pasul 10 — Final Polish / Launch
+- microanimații, accesibilitate, optimizare performanță, SEO, audit GDPR/legal, lansare publică.
 
 ---
 
@@ -1241,31 +1437,31 @@ Context + reguli + arhitectură.
 Foundation.
 
 ### Prompt 2
-Database/Auth.
+Auth + Security.
 
 ### Prompt 3
-Admin content.
+Lesson Engine.
 
 ### Prompt 4
-Student catalog.
+Catalog.
 
 ### Prompt 5
-Lesson experience.
+Dashboard + Progress + Streak + Activity (Milestone 3).
 
 ### Prompt 6
-Progress.
+Quiz Engine.
 
 ### Prompt 7
-FREE/PRO.
+Stripe / PRO subscriptions.
 
 ### Prompt 8
-Payments.
+Admin CMS.
 
 ### Prompt 9
-Learning.
+AI content pipeline.
 
 ### Prompt 10
-Polish.
+Final Polish / Launch.
 
 Fiecare pas este verificat înainte de următorul.
 
@@ -1379,6 +1575,8 @@ Acesta este punctul în care proiectul poate trece de la **idee** la **specifica
 
 # 46. Criterii de Acceptare Canonice (Acceptance Criteria)
 
+## 46.1. Content & Access Control (Milestones 1 & 2)
+
 1. **Guest → `/catalog`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
 2. **Guest → `/catalog/:subject`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
 3. **Guest → `/lesson/:lessonId`**: Acces refuzat (DENIED) / Redirecționare automată către `/login`.
@@ -1389,3 +1587,21 @@ Acesta este punctul în care proiectul poate trece de la **idee** la **specifica
 8. **Unpublished Lesson**: Indisponibilă pentru studenți (`NOT_FOUND` / 404).
 9. **Reviewer → Unpublished Content**: Acces `SELECT` (read-only) pentru revizuire conținut.
 10. **Reviewer → Modify Content**: Refuzat (`INSERT`, `UPDATE`, `DELETE` nepermise de RLS).
+
+## 46.2. Dashboard, Progress, Streak & Activity (Milestone 3)
+
+1. **Authenticated Student Dashboard Access**: Un elev autentificat poate accesa `/dashboard` și vizualiza toate datele sale agregate.
+2. **Guest Dashboard Protection**: Un vizitator neautentificat (Guest) este refuzat și redirecționat automat către `/login`.
+3. **Continue Learning Selection**: Cardul afișează cea mai recentă lecție `in_progress` a utilizatorului (`ORDER BY updated_at DESC LIMIT 1`).
+4. **New User Empty State**: Un utilizator fără lecții `in_progress` primește un Empty State premium cu îndrumare clară către `/catalog`.
+5. **Global Progress Total Denominator**: Progresul Global include în numitor TOATE lecțiile publicate pe platformă (atât `FREE` cât și `PRO`).
+6. **Subject Progress Total Denominator**: Progresul pe materie include în numitor TOATE lecțiile publicate din materia respectivă (`FREE` + `PRO`).
+7. **Progress Lifecycle**: Parcurgerea conținutului actualizează `last_block_id` și `progress_percent`; finalizarea marchează lecția ca fiind `completed`.
+8. **Streak Learning Eligibility**: Numai activitățile reale de învățare (progres real în lecție, completare lecție, quiz, autoevaluare) sunt eligibile pentru streak; vizitarea paginilor/login nu se contorizează.
+9. **Streak Daily Idempotency**: Activitățile multiple efectuate în aceeași zi calendaristică NU cresc streak-ul de mai multe ori.
+10. **Recent Activity Relevant Feed**: Lista afișează doar acțiunile pedagogice semnificative (`lesson_completed`, `quiz_completed`, progres, autoevaluare); telemetria internă `lesson_opened` este filtrată din UI.
+11. **PRO Status Accuracy**: Cardul de status reflectă starea reală de abonament a contului (FREE vs PRO) fără a declanșa încă fluxul complet Stripe.
+12. **Mandatory Skeleton Loading**: În timpul încărcării datelor, Dashboard-ul afișează skeleton-uri complete reprezentative pentru fiecare modul (fără spinner central pe ecran gol).
+13. **State Matrix Coverage**: Dashboard-ul tratează corect toate stările: Loading (Skeleton), Empty (New user), Error (Retry), Normal/Success, Locked/PRO.
+14. **Data Isolation / RLS Security**: Utilizatorul poate citi doar propriile date (progres, streak, activitate); transmiterea progresului (`lesson_progress`) este validată strict server-side, în timp ce `user_streaks` și `user_activity` sunt scrise și actualizate exclusiv server-side.
+15. **Responsive Consistency**: Interfața este complet fluidă și adaptată atât pe mobile (o coloană, carduri full-width, touch targets mari), cât și pe desktop (layout spațiat, clar, orientat spre învățare).
