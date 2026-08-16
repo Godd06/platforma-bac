@@ -70,7 +70,7 @@ export const CatalogPage: React.FC = () => {
   // 1. Premium Loading Skeleton State
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6 pb-16 px-2 sm:px-4 animate-fadeIn select-none">
+      <div className="max-w-5xl mx-auto space-y-6 pb-16 animate-fadeIn select-none">
         {/* Breadcrumb skeleton */}
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-28" rounded="md" />
@@ -160,7 +160,7 @@ export const CatalogPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-16 px-2 sm:px-4 animate-fadeIn">
+    <div className="max-w-5xl mx-auto space-y-6 pb-16 animate-fadeIn">
       {/* LEVEL 2: Subject View (/catalog/:subject) -> Single page with Expandable Chapter Cards */}
       {subjectSlug && subjectDetail ? (
         <div className="space-y-5">
@@ -183,13 +183,13 @@ export const CatalogPage: React.FC = () => {
 
           {/* Search filter within subject */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Caută o operă, autor sau titlu de eseu..."
-              className="w-full pl-9 pr-4 py-2 rounded-lg glass-default text-xs sm:text-sm text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all min-h-[40px]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border text-xs sm:text-sm font-medium text-text placeholder:text-text-muted focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/25 transition-all shadow-subtle min-h-[44px]"
             />
           </div>
 

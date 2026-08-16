@@ -208,53 +208,65 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
 }) => {
   return (
     <div className={`relative min-h-full w-full overflow-hidden ${className}`}>
-      {/* LAYER 1: Ambient Glow Orbs (Rich & Atmospheric on All Pages) */}
+      {/* LAYER 0: Architectural Fine Mesh / Dot Canvas */}
+      <div className="ambient-grid-pattern" aria-hidden="true" />
+
+      {/* LAYER 0.5: Celestial Header Spotlight */}
+      <div className="ambient-top-spotlight" aria-hidden="true" />
+
+      {/* LAYER 1: Ambient Glow Orbs & Auroral Depth Fields */}
       <div className="pointer-events-none select-none" aria-hidden="true">
         {variant === 'landing' && (
           <>
-            <div className="ambient-glow-cyan top-[-6%] left-[12%] animate-ambient-1 opacity-85" />
-            <div className="ambient-glow-teal top-[28%] right-[4%] animate-ambient-2 opacity-75" />
-            <div className="ambient-glow-amber top-[58%] left-[6%] animate-ambient-3 opacity-65" />
-            <div className="ambient-glow-cyan bottom-[6%] right-[10%] animate-ambient-1 opacity-70" />
+            <div className="ambient-glow-cyan top-[-6%] left-[10%] animate-ambient-1 opacity-90" />
+            <div className="ambient-glow-teal top-[25%] right-[2%] animate-ambient-2 opacity-80" />
+            <div className="ambient-glow-amber top-[52%] left-[4%] animate-ambient-3 opacity-75" />
+            <div className="ambient-glow-indigo top-[74%] right-[8%] animate-ambient-1 opacity-70" />
+            <div className="ambient-glow-cyan bottom-[4%] left-[12%] animate-ambient-2 opacity-80" />
           </>
         )}
 
         {variant === 'auth' && (
           <>
-            <div className="ambient-glow-cyan top-[-8%] left-[50%] -translate-x-1/2 animate-ambient-1 opacity-80" />
-            <div className="ambient-glow-teal bottom-[-5%] right-[12%] animate-ambient-2 opacity-70" />
-            <div className="ambient-glow-amber bottom-[20%] left-[8%] animate-ambient-3 opacity-55" />
+            <div className="ambient-glow-cyan top-[-6%] left-[50%] -translate-x-1/2 animate-ambient-1 opacity-85" />
+            <div className="ambient-glow-teal bottom-[-4%] right-[10%] animate-ambient-2 opacity-75" />
+            <div className="ambient-glow-amber bottom-[22%] left-[6%] animate-ambient-3 opacity-65" />
+            <div className="ambient-glow-indigo top-[40%] right-[4%] animate-ambient-1 opacity-60" />
           </>
         )}
 
         {variant === 'dashboard' && (
           <>
-            <div className="ambient-glow-cyan top-[-10%] right-[4%] animate-ambient-1 opacity-70" />
-            <div className="ambient-glow-teal top-[45%] left-[-6%] animate-ambient-2 opacity-60" />
-            <div className="ambient-glow-amber bottom-[-8%] right-[12%] animate-ambient-3 opacity-55" />
+            <div className="ambient-glow-cyan top-[-8%] right-[4%] animate-ambient-1 opacity-80" />
+            <div className="ambient-glow-teal top-[42%] left-[-4%] animate-ambient-2 opacity-70" />
+            <div className="ambient-glow-indigo top-[70%] right-[8%] animate-ambient-3 opacity-60" />
+            <div className="ambient-glow-amber bottom-[-6%] left-[10%] animate-ambient-1 opacity-65" />
           </>
         )}
 
         {(variant === 'pro' || variant === 'history') && (
           <>
-            <div className="ambient-glow-amber top-[-6%] right-[8%] animate-ambient-1 opacity-85" />
-            <div className="ambient-glow-cyan top-[48%] left-[4%] animate-ambient-2 opacity-70" />
-            <div className="ambient-glow-amber bottom-[-6%] right-[14%] animate-ambient-3 opacity-75" />
+            <div className="ambient-glow-amber top-[-4%] right-[6%] animate-ambient-1 opacity-90" />
+            <div className="ambient-glow-cyan top-[44%] left-[4%] animate-ambient-2 opacity-75" />
+            <div className="ambient-glow-indigo top-[68%] right-[8%] animate-ambient-3 opacity-65" />
+            <div className="ambient-glow-amber bottom-[-4%] left-[12%] animate-ambient-1 opacity-85" />
           </>
         )}
 
         {(variant === 'catalog' || variant === 'romanian' || variant === 'math') && (
           <>
-            <div className="ambient-glow-cyan top-[-10%] right-[6%] animate-ambient-1 opacity-65" />
-            <div className="ambient-glow-teal top-[46%] left-[-4%] animate-ambient-2 opacity-55" />
-            <div className="ambient-glow-amber bottom-[-8%] right-[10%] animate-ambient-3 opacity-50" />
+            <div className="ambient-glow-cyan top-[-8%] right-[4%] animate-ambient-1 opacity-75" />
+            <div className="ambient-glow-teal top-[42%] left-[-2%] animate-ambient-2 opacity-65" />
+            <div className="ambient-glow-indigo top-[66%] right-[6%] animate-ambient-3 opacity-55" />
+            <div className="ambient-glow-amber bottom-[-6%] left-[8%] animate-ambient-1 opacity-60" />
           </>
         )}
 
         {(variant === 'lesson' || variant === 'settings' || variant === 'admin') && (
           <>
-            <div className="ambient-glow-cyan top-[-14%] right-[6%] animate-ambient-1 opacity-50" />
-            <div className="ambient-glow-teal bottom-[-10%] left-[4%] animate-ambient-2 opacity-45" />
+            <div className="ambient-glow-cyan top-[-10%] right-[4%] animate-ambient-1 opacity-65" />
+            <div className="ambient-glow-teal bottom-[-6%] left-[4%] animate-ambient-2 opacity-55" />
+            <div className="ambient-glow-indigo top-[50%] right-[6%] animate-ambient-3 opacity-45" />
           </>
         )}
       </div>

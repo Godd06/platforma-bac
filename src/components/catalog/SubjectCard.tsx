@@ -16,7 +16,7 @@ export const SubjectCard: React.FC<Props> = ({ subject }) => {
   return (
     <Link
       to={`/catalog/${subject.slug}`}
-      className={`group relative block p-6 rounded-2xl glass-elevated interactive-card border border-border hover:border-${accentColor}-500/40 flex flex-col justify-between overflow-hidden shadow-subtle`}
+      className={`group relative block p-6 rounded-2xl glass-elevated interactive-card border border-border hover:border-${accentColor}-500/40 flex flex-col justify-between overflow-hidden shadow-subtle h-full`}
     >
       {/* Ambient Inner Spot Glow */}
       <div

@@ -90,7 +90,7 @@ export const LessonPage: React.FC = () => {
   // 1. Premium Loading State (Textbook skeleton)
   if (loading) {
     return (
-      <div className="max-w-prose mx-auto space-y-6 pb-16 px-2 sm:px-4 animate-fadeIn select-none">
+      <div className="max-w-prose mx-auto space-y-6 pb-16 animate-fadeIn select-none">
         {/* Breadcrumb skeleton */}
         <div className="flex items-center justify-between pb-2 border-b border-border-subtle">
           <Skeleton className="h-4 w-20" rounded="md" />
@@ -216,7 +216,7 @@ export const LessonPage: React.FC = () => {
 
   return (
     <div
-      className={`mx-auto space-y-6 pb-20 px-2 sm:px-4 animate-fadeIn transition-all duration-300 ${
+      className={`mx-auto space-y-6 pb-20 animate-fadeIn transition-all duration-300 ${
         focusMode ? 'max-w-3xl pt-2' : 'max-w-prose'
       }`}
     >

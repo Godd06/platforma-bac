@@ -285,12 +285,12 @@ export const CommandPalette: React.FC = () => {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-subtle border border-border text-xs text-text-muted hover:text-text hover:border-cyan-500/40 transition-colors shadow-subtle"
+        className="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface border border-border text-xs font-semibold text-text hover:text-cyan-400 hover:border-cyan-500/40 transition-colors shadow-subtle min-h-[38px]"
         title="Caută rapid în catalog (Ctrl + K)"
       >
         <Search className="w-3.5 h-3.5 text-cyan-400" />
         <span>Căutare rapidă...</span>
-        <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-mono text-text-subtle">
+        <kbd className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-lg bg-surface-elevated border border-border text-[10px] font-mono text-text font-bold">
           <Command className="w-2.5 h-2.5" /> K
         </kbd>
       </button>
@@ -302,16 +302,16 @@ export const CommandPalette: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-label="Căutare Globală & Comenzi"
-      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/75 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/80 backdrop-blur-md animate-fadeIn"
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="w-full max-w-xl rounded-3xl glass-featured border border-border p-2 sm:p-3 shadow-2xl space-y-2 animate-fadeIn select-none"
+        className="w-full max-w-xl rounded-3xl bg-surface border border-border p-3 sm:p-4 shadow-2xl space-y-3 animate-fadeIn select-none"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleModalKeyDown}
       >
         {/* Search Input Bar */}
-        <div className="relative flex items-center px-3 py-2 bg-surface/80 rounded-2xl border border-border-subtle">
+        <div className="relative flex items-center px-4 py-3 bg-surface-elevated rounded-2xl border border-border shadow-inner">
           <Search className="w-5 h-5 text-cyan-400 shrink-0" />
           <input
             type="text"
@@ -319,17 +319,17 @@ export const CommandPalette: React.FC = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Caută orice eseu, autor canonic, temă de istorie sau acțiune..."
-            className="w-full bg-transparent px-3 py-1.5 text-sm text-text placeholder:text-text-subtle focus:outline-none"
+            className="w-full bg-transparent px-3 py-1 text-sm font-medium text-text placeholder:text-text-muted focus:outline-none"
           />
           {query ? (
             <button
               onClick={() => setQuery('')}
-              className="p-1 text-text-subtle hover:text-text rounded-lg"
+              className="p-1 text-text-muted hover:text-text rounded-lg"
             >
               <X className="w-4 h-4" />
             </button>
           ) : (
-            <span className="text-[10px] font-mono text-text-subtle px-2 py-0.5 rounded bg-surface border border-border">
+            <span className="text-[10px] font-mono text-text-muted px-2 py-0.5 rounded bg-surface border border-border font-bold">
               ESC
             </span>
           )}

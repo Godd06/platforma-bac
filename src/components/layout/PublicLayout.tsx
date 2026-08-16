@@ -16,7 +16,6 @@ import {
 import { useAuth } from '@/hooks/useAuth'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AmbientBackground } from '@/components/ui/AmbientBackground'
-import { CommandPalette } from '@/components/ui/CommandPalette'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 export const PublicLayout: React.FC = () => {
@@ -78,32 +77,32 @@ export const PublicLayout: React.FC = () => {
             : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-4">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-6">
           {/* Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 font-bold text-base text-text hover:opacity-90 transition-opacity group"
+            className="flex items-center gap-3 font-bold text-base text-text hover:opacity-90 transition-opacity group shrink-0"
           >
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.25)] group-hover:scale-105 transition-transform">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)] group-hover:scale-105 transition-transform">
               <BookOpen className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
-              <span className="font-display font-bold text-lg tracking-tight text-text leading-tight">
+              <span className="font-display font-extrabold text-xl tracking-tight text-text leading-tight">
                 Platforma<span className="text-cyan-400">Bac</span>
               </span>
-              <span className="text-[10px] text-text-subtle font-medium -mt-0.5 tracking-wider uppercase">
+              <span className="text-[10px] text-text-subtle font-semibold -mt-0.5 tracking-wider uppercase">
                 Spațiu Digital de Studiu
               </span>
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5" aria-label="Navigare Principală">
+          {/* Desktop Navigation Links — Luxury Segmented Pill Bar */}
+          <nav className="hidden md:flex items-center p-1.5 rounded-2xl glass-elevated border border-border/80 shadow-subtle gap-1" aria-label="Navigare Principală">
             {isAuthenticated && (
               <NavLink
                 to="/dashboard"
                 className={({ isActive }) =>
-                  `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center gap-2 ${
+                  `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                     isActive
                       ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
@@ -118,23 +117,24 @@ export const PublicLayout: React.FC = () => {
             <NavLink
               to="/catalog"
               className={({ isActive }) =>
-                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center ${
+                `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
                     ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
                     : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                 }`
               }
             >
-              Catalog Materii
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <span>Catalog Materii</span>
             </NavLink>
 
             <NavLink
               to="/pro"
               className={({ isActive }) =>
-                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 min-h-[42px] ${
+                `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold shadow-subtle'
-                    : 'text-amber-400/90 hover:text-amber-300 hover:bg-surface-elevated/60'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shadow-subtle'
+                    : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
                 }`
               }
             >
@@ -144,8 +144,7 @@ export const PublicLayout: React.FC = () => {
           </nav>
 
           {/* Desktop Auth CTAs + ThemeToggle */}
-          <div className="hidden md:flex items-center gap-3">
-            <CommandPalette />
+          <div className="hidden md:flex items-center gap-3 shrink-0">
             <ThemeToggle />
             {loading ? (
               <Skeleton className="h-10 w-28" rounded="xl" />
@@ -163,18 +162,18 @@ export const PublicLayout: React.FC = () => {
 
                 <Link
                   to="/settings"
-                  className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
                   title="Setări Cont"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-surface-elevated text-cyan-400 border border-border flex items-center justify-center font-bold text-xs shadow-subtle">
-                    {userDisplayName.charAt(0).toUpperCase() || <User className="w-3.5 h-3.5" />}
+                  <div className="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-xs shadow-subtle">
+                    {userDisplayName.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
                   </div>
-                  <span className="max-w-[130px] truncate">{userDisplayName}</span>
+                  <span className="max-w-[120px] truncate">{userDisplayName}</span>
                 </Link>
 
                 <Link
                   to="/dashboard"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[42px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[40px]"
                 >
                   <span>Dashboard</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -193,7 +192,7 @@ export const PublicLayout: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Link
                   to="/login"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated transition-all min-h-[42px]"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-all min-h-[40px]"
                 >
                   <LogIn className="w-4 h-4" />
                   <span>Autentificare</span>
@@ -201,7 +200,7 @@ export const PublicLayout: React.FC = () => {
 
                 <Link
                   to="/register"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[42px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[40px]"
                 >
                   <span>Cont Gratuit</span>
                   <ArrowRight className="w-4 h-4" />
@@ -392,7 +391,7 @@ export const PublicLayout: React.FC = () => {
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 focus:outline-none"
+          className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 focus:outline-none"
         >
           <Outlet />
         </main>

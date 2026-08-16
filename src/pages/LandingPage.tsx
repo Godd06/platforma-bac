@@ -233,7 +233,7 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="space-y-24 sm:space-y-32 py-4 sm:py-10">
       {/* 1. HERO SECTION */}
-      <section className="text-center max-w-4xl mx-auto space-y-7 px-4 animate-fadeIn">
+      <section className="text-center max-w-4xl mx-auto space-y-7 animate-fadeIn">
         {/* Luminous Pulsing Live Badge */}
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full glass-elevated border border-cyan-500/30 text-xs font-semibold text-text shadow-[0_0_20px_rgba(6,182,212,0.25)]">
           <span className="relative flex h-2.5 w-2.5">
@@ -334,7 +334,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 2. THE LIVING PRODUCT EXPERIENCE STUDIO (Refined Framing & Interactive Software Showcase) */}
-      <section id="living-studio" className="max-w-5xl mx-auto px-4 space-y-4">
+      <section id="living-studio" className="max-w-5xl mx-auto space-y-4">
         <ScrollReveal className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -634,7 +634,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 3. HIGH-UTILITY INTERACTIVE STUDY HUB (Nucleu Interactiv de Studiu) */}
-      <section id="nucleu-studiu" className="max-w-5xl mx-auto px-4 space-y-6">
+      <section id="nucleu-studiu" className="max-w-5xl mx-auto space-y-6">
         <ScrollReveal className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 px-3.5 py-1 rounded-full glass-subtle border border-cyan-500/20">
             <Sparkles className="w-3.5 h-3.5" />
@@ -724,7 +724,7 @@ export const LandingPage: React.FC = () => {
               {filteredCanonicalWorks.map((work) => (
                 <div
                   key={work.id}
-                  className="p-6 rounded-2xl glass-elevated interactive-card border border-border/80 hover:border-cyan-500/40 flex flex-col justify-between space-y-4 shadow-subtle"
+                  className="p-6 rounded-2xl glass-elevated interactive-card border border-border/80 hover:border-cyan-500/40 flex flex-col justify-between space-y-4 shadow-subtle h-full"
                 >
                   <div className="space-y-3.5">
                     <div className="flex items-center justify-between gap-2">
@@ -781,7 +781,7 @@ export const LandingPage: React.FC = () => {
             {historyPillars.map((pillar, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-2xl glass-elevated interactive-card border border-border/80 hover:border-amber-500/40 flex flex-col justify-between space-y-4 shadow-subtle"
+                className="p-6 rounded-2xl glass-elevated interactive-card border border-border/80 hover:border-amber-500/40 flex flex-col justify-between space-y-4 shadow-subtle h-full"
               >
                 <div className="space-y-3.5">
                   <div className="flex items-center justify-between gap-2">
@@ -830,7 +830,7 @@ export const LandingPage: React.FC = () => {
             {baremRules.map((rule, idx) => (
               <div
                 key={idx}
-                className="p-6 rounded-2xl glass-elevated border border-border/80 space-y-4 shadow-subtle"
+                className="p-6 rounded-2xl glass-elevated border border-border/80 space-y-4 shadow-subtle flex flex-col justify-between h-full"
               >
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
@@ -858,7 +858,7 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 4. METHODOLOGY (4 Piloni ai Pregătirii Eficiente cu ScrollReveal) */}
-      <ScrollReveal className="max-w-5xl mx-auto px-4 space-y-8">
+      <ScrollReveal className="max-w-5xl mx-auto space-y-8">
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 px-3.5 py-1 rounded-full glass-subtle border border-cyan-500/20">
             <Brain className="w-3.5 h-3.5" />
@@ -873,7 +873,7 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle">
+          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle flex flex-col justify-start h-full">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 flex items-center justify-center font-bold text-sm">
               01
             </div>
@@ -883,7 +883,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle">
+          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle flex flex-col justify-start h-full">
             <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center justify-center font-bold text-sm">
               02
             </div>
@@ -893,7 +893,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle">
+          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle flex flex-col justify-start h-full">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 flex items-center justify-center font-bold text-sm">
               03
             </div>
@@ -903,7 +903,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle">
+          <div className="p-6 rounded-2xl glass-elevated interactive-card space-y-3 border border-border shadow-subtle flex flex-col justify-start h-full">
             <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/25 flex items-center justify-center font-bold text-sm">
               04
             </div>
@@ -916,7 +916,7 @@ export const LandingPage: React.FC = () => {
       </ScrollReveal>
 
       {/* 5. TRANSPARENT FREE VS PRO COMPARISON (ScrollReveal) */}
-      <ScrollReveal className="max-w-4xl mx-auto px-4 space-y-6">
+      <ScrollReveal className="max-w-4xl mx-auto space-y-6">
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1 text-xs font-semibold text-amber-400 px-3.5 py-1 rounded-full glass-subtle border border-amber-500/25">
             <Sparkles className="w-3.5 h-3.5" />
@@ -1030,7 +1030,7 @@ export const LandingPage: React.FC = () => {
       </ScrollReveal>
 
       {/* 6. FAQ SECTION (ScrollReveal) */}
-      <ScrollReveal className="max-w-3xl mx-auto px-4 space-y-4">
+      <ScrollReveal className="max-w-3xl mx-auto space-y-4">
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 px-3.5 py-1 rounded-full glass-subtle border border-cyan-500/20">
             <HelpCircle className="w-3.5 h-3.5" />
@@ -1073,7 +1073,7 @@ export const LandingPage: React.FC = () => {
       </ScrollReveal>
 
       {/* 7. MINIMAL FINAL CTA (ScrollReveal) */}
-      <ScrollReveal className="text-center max-w-lg mx-auto px-4 space-y-4">
+      <ScrollReveal className="text-center max-w-lg mx-auto space-y-4">
         <h2 className="font-display text-2xl sm:text-3xl font-bold text-text">
           Pregătește-te eficient pentru examen
         </h2>
