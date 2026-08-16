@@ -1,49 +1,40 @@
 import React, { useState, useEffect } from 'react'
-import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
+  ShieldCheck,
   LayoutDashboard,
-  FolderTree,
-  Image as ImageIcon,
-  HelpCircle,
-  Users,
-  CreditCard,
-  BarChart3,
-  Settings,
-  ShieldAlert,
+  BookOpen,
+  ArrowLeft,
   LogOut,
   Menu,
   X,
-  ArrowLeft,
 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { AmbientBackground } from '@/components/ui/AmbientBackground'
 
 export const AdminLayout: React.FC = () => {
-  const { signOut, user } = useAuth()
+  const { user, signOut } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
+  // Close mobile drawer on route change
   useEffect(() => {
-    setMobileSidebarOpen(false)
+    setMobileMenuOpen(false)
   }, [location.pathname])
 
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
-    if (mobileSidebarOpen) {
+    if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setMobileSidebarOpen(false)
-        }
-      }
-      window.addEventListener('keydown', handleKeyDown)
-      return () => {
-        document.body.style.overflow = ''
-        window.removeEventListener('keydown', handleKeyDown)
-      }
     } else {
       document.body.style.overflow = ''
     }
-  }, [mobileSidebarOpen])
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
 
   const handleLogout = async () => {
     try {
@@ -54,144 +45,216 @@ export const AdminLayout: React.FC = () => {
     }
   }
 
-  const adminNavItems = [
-    { to: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
-    { to: '/admin/content', label: 'Conținut', icon: FolderTree },
-    { to: '/admin/media', label: 'Media', icon: ImageIcon },
-    { to: '/admin/quizzes', label: 'Quiz-uri', icon: HelpCircle },
-    { to: '/admin/users', label: 'Utilizatori', icon: Users },
-    { to: '/admin/subscriptions', label: 'Abonamente', icon: CreditCard },
-    { to: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
-    { to: '/admin/settings', label: 'Setări', icon: Settings },
-  ]
+  const userDisplayName =
+    (user?.user_metadata?.full_name as string) ||
+    (user?.email ? user.email.split('@')[0] : 'Administrator')
 
-  const SidebarContent = () => (
-    <div className="h-full flex flex-col justify-between bg-surface border-r border-border">
-      <div>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-border/80">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
-              <ShieldAlert className="w-4 h-4" />
+  const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
+    <div className="h-full flex flex-col justify-between bg-sidebar border-r border-border p-5 select-none">
+      <div className="space-y-6">
+        {/* Brand Header */}
+        <div className="flex items-center justify-between px-1 pt-1 pb-1">
+          <Link
+            to="/admin"
+            onClick={onNavigate}
+            className="flex items-center gap-3 group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shadow-[0_0_16px_rgba(245,158,11,0.25)]">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <span className="font-bold text-base text-text">Admin CMS</span>
-          </div>
-          {mobileSidebarOpen && (
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-base tracking-tight text-text leading-tight">
+                Platforma<span className="text-amber-400">Admin</span>
+              </span>
+              <span className="text-[10px] text-text-subtle font-medium tracking-wider uppercase -mt-0.5">
+                CMS & Administrare
+              </span>
+            </div>
+          </Link>
+
+          {onNavigate && (
             <button
               type="button"
-              onClick={() => setMobileSidebarOpen(false)}
-              aria-label="Închide meniul"
-              className="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-text-muted hover:text-text bg-surface-elevated border border-border"
+              onClick={onNavigate}
+              aria-label="Închide meniul admin"
+              className="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text bg-surface border border-border"
             >
               <X className="w-5 h-5" />
             </button>
           )}
         </div>
 
-        <nav className="px-4 py-4 space-y-1.5">
-          {adminNavItems.map((item) => {
-            const Icon = item.icon
-            return (
+        {/* Navigation Section */}
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-bold text-text-subtle uppercase tracking-wider px-3.5">
+              Gestiune Conținut
+            </span>
+            <nav className="space-y-1 pt-1">
               <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={() => setMobileSidebarOpen(false)}
+                to="/admin"
+                end
+                onClick={onNavigate}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all min-h-[44px] ${
+                  `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                     isActive
-                      ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                      : 'text-text-muted hover:text-text hover:bg-surface-elevated'
+                      ? 'bg-surface-active text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
                   }`
                 }
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-400" />
+                    )}
+                    <LayoutDashboard className="w-4 h-4 shrink-0 text-amber-400" />
+                    <span>Panou Control</span>
+                  </>
+                )}
               </NavLink>
-            )
-          })}
-        </nav>
+
+              <NavLink
+                to="/admin/content"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-400" />
+                    )}
+                    <BookOpen className="w-4 h-4 shrink-0 text-amber-400" />
+                    <span>Curriculum & Lecții</span>
+                  </>
+                )}
+              </NavLink>
+            </nav>
+          </div>
+        </div>
       </div>
 
-      <div className="p-4 border-t border-border space-y-2">
+      {/* Bottom User Row */}
+      <div className="space-y-3 pt-4 border-t border-border">
         <Link
           to="/dashboard"
-          className="w-full flex items-center justify-center gap-2 text-xs text-text-muted hover:text-cyan-400 transition-colors py-2.5 border border-border rounded-xl min-h-[40px]"
+          onClick={onNavigate}
+          className="flex items-center justify-between p-3.5 rounded-2xl bg-surface border border-border hover:border-cyan-500/30 text-xs font-semibold text-text transition-colors shadow-subtle"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Înapoi la platformă</span>
+          <div className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4 text-cyan-400" />
+            <span>Înapoi în Modul Elev</span>
+          </div>
         </Link>
 
-        <button
-          onClick={handleLogout}
-          className="w-full text-center text-xs text-status-danger hover:text-red-300 transition-colors py-2.5 border border-status-danger/20 hover:border-status-danger/40 rounded-xl flex items-center justify-center gap-1.5 min-h-[40px]"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          <span>Deconectare</span>
-        </button>
+        <div className="flex items-center justify-between gap-2 p-3 rounded-2xl glass-subtle border border-border-subtle">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-text truncate">{userDisplayName}</p>
+            <p className="text-[10px] text-amber-400 font-medium">Administrator</p>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-xl text-text-muted hover:text-status-danger hover:bg-status-danger/10 transition-colors"
+              title="Deconectare"
+              aria-label="Deconectare"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-background text-text relative">
-      {/* Skip to Content for Accessibility */}
+    <div className="min-h-screen flex bg-background text-text relative">
+      {/* Skip to Content */}
       <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
+        href="#admin-main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-amber-500 focus:text-black focus:font-bold focus:rounded-xl focus:shadow-lg focus:outline-none"
       >
-        Sari la conținut
+        Sari la conținutul admin
       </a>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 flex-shrink-0">
-        <div className="sticky top-0 h-screen">
-          <SidebarContent />
-        </div>
+      {/* Desktop Persistent Left Sidebar */}
+      <aside className="hidden lg:block w-72 h-screen sticky top-0 flex-shrink-0 z-30">
+        <SidebarContent />
       </aside>
 
-      {/* Robust Mobile Drawer Overlay */}
-      {mobileSidebarOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Meniu Panou Administrare"
-          className="fixed inset-0 z-50 lg:hidden flex"
-        >
-          <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-fadeIn"
-            onClick={() => setMobileSidebarOpen(false)}
-            aria-hidden="true"
-          />
+      {/* Main Admin Workspace */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        {/* Mobile Header (< lg, h-[72px]) */}
+        <header className="lg:hidden sticky top-0 z-30 h-[72px] border-b border-border glass-floating flex items-center justify-between px-4 sm:px-8 shadow-[0_4px_24px_rgba(0,0,0,0.20)]">
+          <Link
+            to="/admin"
+            className="flex items-center gap-3 font-bold text-sm text-text"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-subtle">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <span className="font-display font-bold text-base tracking-tight">
+              Platforma<span className="text-amber-400">Admin</span>
+            </span>
+          </Link>
 
-          <div className="relative w-72 max-w-[85vw] h-full z-10 shadow-2xl animate-fadeIn">
-            <SidebarContent />
-          </div>
-        </div>
-      )}
-
-      {/* Main Admin Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border/70 bg-surface/80 px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <button
               type="button"
-              onClick={() => setMobileSidebarOpen(true)}
-              aria-label="Deschide meniu admin"
-              className="lg:hidden p-2 rounded-xl text-text-muted hover:text-cyan-400 bg-surface border border-border min-h-[44px] min-w-[44px] flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="admin-mobile-drawer"
+              aria-label={mobileMenuOpen ? 'Închide meniul admin' : 'Deschide meniul admin'}
+              className="w-11 h-11 flex items-center justify-center rounded-2xl text-text-muted hover:text-amber-400 bg-surface border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 shadow-subtle"
             >
-              <Menu className="w-5 h-5" />
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
-            <h1 className="text-sm font-bold text-text">Panou de Administrare</h1>
           </div>
-          <span className="text-xs text-text-subtle font-mono truncate max-w-[180px] sm:max-w-none">
-            {user?.email}
-          </span>
         </header>
 
-        <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-8 focus:outline-none overflow-x-auto">
-          <Outlet />
-        </main>
+        {/* Mobile Navigation Drawer Overlay */}
+        {mobileMenuOpen && (
+          <div
+            id="admin-mobile-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Meniu Administrare CMS"
+            className="fixed inset-0 z-50 lg:hidden flex justify-end"
+          >
+            <div
+              className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+
+            <div className="relative w-84 max-w-[90vw] h-full shadow-2xl z-10 animate-fadeIn">
+              <SidebarContent onNavigate={() => setMobileMenuOpen(false)} />
+            </div>
+          </div>
+        )}
+
+        {/* Main Content with Ambient Background */}
+        <AmbientBackground variant="admin" className="flex-1 flex flex-col">
+          <main
+            id="admin-main-content"
+            tabIndex={-1}
+            className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 focus:outline-none"
+          >
+            <Outlet />
+          </main>
+        </AmbientBackground>
       </div>
     </div>
   )
 }
+
+export default AdminLayout

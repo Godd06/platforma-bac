@@ -15,13 +15,11 @@ export const SummaryBlock: React.FC<Props> = ({ content }) => {
   }`
 
   return (
-    <div className="my-6 rounded-3xl border border-status-success/30 bg-status-success/5 p-5 sm:p-7 space-y-4 shadow-sm">
+    <div className="my-5 rounded-lg border border-status-success/25 bg-status-success/5 p-4 sm:p-5 space-y-2.5 max-w-prose">
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5 text-status-success">
-          <div className="p-2 rounded-xl bg-status-success/20 border border-status-success/30">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
-          </div>
-          <h4 className="font-bold text-base sm:text-lg text-text">
+        <div className="flex items-center gap-2 text-status-success">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <h4 className="font-display font-bold text-xs sm:text-sm text-text">
             {title}
           </h4>
         </div>
@@ -29,10 +27,10 @@ export const SummaryBlock: React.FC<Props> = ({ content }) => {
       </div>
 
       {items && items.length > 0 && (
-        <ul className="space-y-2.5 text-sm sm:text-base text-text">
+        <ul className="space-y-1.5 text-xs sm:text-sm text-text">
           {items.map((item, idx) => (
-            <li key={idx} className="flex items-start gap-3">
-              <span className="w-2 h-2 rounded-full bg-status-success mt-2 shrink-0" />
+            <li key={idx} className="flex items-start gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success mt-1.5 shrink-0" />
               <span className="leading-relaxed text-text-muted">{item}</span>
             </li>
           ))}
@@ -40,7 +38,7 @@ export const SummaryBlock: React.FC<Props> = ({ content }) => {
       )}
 
       {textContent && (
-        <p className="text-sm sm:text-base leading-relaxed text-text-muted whitespace-pre-line">
+        <p className="text-xs sm:text-sm leading-relaxed text-text-muted whitespace-pre-line">
           {textContent}
         </p>
       )}

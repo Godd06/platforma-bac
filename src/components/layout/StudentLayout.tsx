@@ -1,49 +1,50 @@
 import React, { useState, useEffect } from 'react'
-import { Link, NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '@/hooks/useAuth'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import {
   BookOpen,
   LayoutDashboard,
-  Library,
-  LogOut,
+  Sparkles,
   Settings,
-  User,
+  LogOut,
   Menu,
   X,
-  ShieldAlert,
+  User,
+  ShieldCheck,
 } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AmbientBackground } from '@/components/ui/AmbientBackground'
+import { CommandPalette } from '@/components/ui/CommandPalette'
 
 export const StudentLayout: React.FC = () => {
-  const { signOut, user, isAdmin } = useAuth()
+  const { user, signOut, isPro, isAdmin } = useAuth()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const isCatalog = location.pathname.startsWith('/catalog')
-  const isLesson = location.pathname.startsWith('/lesson')
-  const ambientVariant = isLesson ? 'lesson' : isCatalog ? 'catalog' : 'dashboard'
+  // Track scroll position for glass header intensification
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   // Close mobile drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [location.pathname])
 
-  // Lock body scroll and listen for Escape key when mobile drawer is open
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setMobileMenuOpen(false)
-        }
-      }
-      window.addEventListener('keydown', handleKeyDown)
-      return () => {
-        document.body.style.overflow = ''
-        window.removeEventListener('keydown', handleKeyDown)
-      }
     } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
       document.body.style.overflow = ''
     }
   }, [mobileMenuOpen])
@@ -62,99 +63,118 @@ export const StudentLayout: React.FC = () => {
     (user?.email ? user.email.split('@')[0] : 'Elev')
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-text relative">
+    <div className="min-h-screen flex flex-col bg-background text-text selection:bg-cyan-500/20 selection:text-cyan-300 relative">
       {/* Skip to Content for Accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-black focus:font-bold focus:rounded-xl focus:shadow-lg focus:outline-none"
       >
         Sari la conținut
       </a>
 
-      {/* Student Navigation Header */}
-      <header className="sticky top-0 z-30 glass-panel border-b border-border/70 backdrop-blur-heavy">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6 lg:gap-8">
-            <Link
-              to="/dashboard"
-              className="flex items-center gap-2.5 font-extrabold text-lg sm:text-xl text-text hover:opacity-90 transition-opacity flex-shrink-0"
-            >
-              <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-                <BookOpen className="w-4 h-4" />
-              </div>
-              <span>
-                Platformă <span className="text-cyan-400">Bac</span>
+      {/* Global Luxury Header Bar (h-[72px], Unified Across All Pages) */}
+      <header
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'glass-floating border-b border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.25)]'
+            : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-4">
+          {/* Brand Logo */}
+          <Link
+            to="/dashboard"
+            className="flex items-center gap-3 font-bold text-base text-text hover:opacity-90 transition-opacity group"
+          >
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.25)] group-hover:scale-105 transition-transform">
+              <BookOpen className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-lg tracking-tight text-text leading-tight">
+                Platforma<span className="text-cyan-400">Bac</span>
               </span>
-            </Link>
+              <span className="text-[10px] text-text-subtle font-medium -mt-0.5 tracking-wider uppercase">
+                Spațiu Digital de Studiu
+              </span>
+            </div>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1.5">
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                      : 'text-text-muted hover:text-text hover:bg-surface-hover/80'
-                  }`
-                }
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Navigare Principală">
+            <NavLink
+              to="/dashboard"
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                }`
+              }
+            >
+              <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+              <span>Panou Studiu</span>
+            </NavLink>
+
+            <NavLink
+              to="/catalog"
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center ${
+                  isActive
+                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                }`
+              }
+            >
+              Catalog Materii
+            </NavLink>
+
+            <NavLink
+              to="/pro"
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 min-h-[42px] ${
+                  isActive
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold shadow-subtle'
+                    : 'text-amber-400/90 hover:text-amber-300 hover:bg-surface-elevated/60'
+                }`
+              }
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Abonament PRO</span>
+            </NavLink>
+          </nav>
+
+          {/* Desktop Auth/User CTAs + ThemeToggle */}
+          <div className="hidden md:flex items-center gap-3">
+            <CommandPalette />
+            <ThemeToggle />
+
+            {isPro && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-subtle">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>PRO ACTIV</span>
+              </span>
+            )}
+
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="p-2.5 rounded-xl text-amber-400 hover:bg-amber-500/15 border border-amber-500/30 transition-colors"
+                title="Panou Administrare"
               >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </NavLink>
+                <ShieldCheck className="w-4 h-4" />
+              </Link>
+            )}
 
-              <NavLink
-                to="/catalog"
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
-                    isActive
-                      ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]'
-                      : 'text-text-muted hover:text-text hover:bg-surface-hover/80'
-                  }`
-                }
-              >
-                <Library className="w-4 h-4" />
-                <span>Catalog</span>
-              </NavLink>
-
-              {isAdmin && (
-                <NavLink
-                  to="/admin"
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      isActive
-                        ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                        : 'text-amber-400/80 hover:text-amber-300 hover:bg-surface-hover/80'
-                    }`
-                  }
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Admin CMS</span>
-                </NavLink>
-              )}
-            </nav>
-          </div>
-
-          {/* Desktop Right Actions */}
-          <div className="hidden md:flex items-center gap-2.5 sm:gap-3">
             <Link
               to="/settings"
-              className="p-2.5 rounded-xl text-text-muted hover:text-cyan-400 hover:bg-surface-elevated transition-colors"
+              className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
               title="Setări Cont"
-              aria-label="Setări Cont"
             >
-              <Settings className="w-4 h-4" />
-            </Link>
-
-            <div
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-elevated border border-border/80 text-xs text-text-muted shadow-sm"
-              title={user?.email || 'Cont Elev'}
-            >
-              <div className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-xs">
-                {userDisplayName.charAt(0).toUpperCase() || <User className="w-3.5 h-3.5" />}
+              <div className="w-8 h-8 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-xs shadow-subtle">
+                {userDisplayName.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
               </div>
-              <span className="max-w-[120px] truncate text-text font-medium">{userDisplayName}</span>
-            </div>
+              <span className="max-w-[130px] truncate">{userDisplayName}</span>
+            </Link>
 
             <button
               onClick={handleLogout}
@@ -167,98 +187,121 @@ export const StudentLayout: React.FC = () => {
           </div>
 
           {/* Mobile Hamburger Button */}
-          <div className="flex md:hidden items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="student-mobile-menu"
-              aria-label={mobileMenuOpen ? 'Închide meniul de navigare' : 'Deschide meniul de navigare'}
-              className="w-11 h-11 flex items-center justify-center rounded-xl text-text-muted hover:text-cyan-400 bg-surface-elevated border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="student-mobile-drawer"
+            aria-label={mobileMenuOpen ? 'Închide meniul principal' : 'Deschide meniul principal'}
+            className="md:hidden w-11 h-11 flex items-center justify-center rounded-2xl text-text-muted hover:text-text bg-surface border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-subtle"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
       </header>
 
-      {/* Robust Mobile Navigation Drawer */}
+      {/* Mobile Navigation Drawer Overlay (Unified & Ergonomic) */}
       {mobileMenuOpen && (
         <div
-          id="student-mobile-menu"
+          id="student-mobile-drawer"
           role="dialog"
           aria-modal="true"
           aria-label="Meniu Navigare Elev"
           className="fixed inset-0 z-50 md:hidden flex justify-end"
         >
           <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-fadeIn"
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
-          <div className="relative w-72 sm:w-80 max-w-[85vw] h-full bg-surface border-l border-border z-10 flex flex-col justify-between p-5 shadow-2xl overflow-y-auto animate-fadeIn">
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-border/60 mb-4">
-                <div className="flex items-center gap-2 font-bold text-base text-text">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <span>Platformă Bac</span>
-                </div>
-                <button
-                  type="button"
+          <div className="relative w-84 max-w-[90vw] h-full bg-sidebar border-l border-border p-6 flex flex-col justify-between shadow-2xl z-10 animate-fadeIn select-none">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-border">
+                <Link
+                  to="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  aria-label="Închide meniul"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text bg-surface-elevated border border-border"
+                  className="flex items-center gap-3 font-bold text-base text-text"
                 >
-                  <X className="w-5 h-5" />
-                </button>
+                  <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <span className="font-display font-bold text-lg tracking-tight text-text">
+                    Platforma<span className="text-cyan-400">Bac</span>
+                  </span>
+                </Link>
+
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Închide meniul"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text bg-surface border border-border"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
 
-              <nav className="space-y-1.5">
+              <nav className="space-y-2" aria-label="Navigare Mobilă Elev">
                 <NavLink
                   to="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[48px] ${
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
                       isActive
-                        ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                        : 'text-text hover:bg-surface-elevated'
+                        ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                        : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                     }`
                   }
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
+                  <LayoutDashboard className="w-5 h-5 text-cyan-400" />
+                  <span>Panou Studiu</span>
                 </NavLink>
 
                 <NavLink
                   to="/catalog"
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[48px] ${
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
                       isActive
-                        ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                        : 'text-text hover:bg-surface-elevated'
+                        ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                        : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                     }`
                   }
                 >
-                  <Library className="w-4 h-4" />
+                  <BookOpen className="w-5 h-5 text-cyan-400" />
                   <span>Catalog Materii</span>
+                </NavLink>
+
+                <NavLink
+                  to="/pro"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
+                      isActive
+                        ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                        : 'text-amber-400/90 hover:text-amber-300 hover:bg-surface-elevated/60'
+                    }`
+                  }
+                >
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                  <span>Abonament PRO</span>
                 </NavLink>
 
                 <NavLink
                   to="/settings"
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[48px] ${
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
                       isActive
-                        ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                        : 'text-text hover:bg-surface-elevated'
+                        ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                        : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                     }`
                   }
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-5 h-5 text-cyan-400" />
                   <span>Setări Cont</span>
                 </NavLink>
 
@@ -266,37 +309,25 @@ export const StudentLayout: React.FC = () => {
                   <NavLink
                     to="/admin"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors min-h-[48px] ${
-                        isActive
-                          ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                          : 'text-amber-400 hover:bg-surface-elevated'
-                      }`
-                    }
+                    className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 min-h-[52px]"
                   >
-                    <ShieldAlert className="w-4 h-4" />
+                    <ShieldCheck className="w-5 h-5 text-amber-400" />
                     <span>Panou Administrare</span>
                   </NavLink>
                 )}
               </nav>
             </div>
 
-            <div className="pt-4 border-t border-border/60 space-y-3">
-              <div className="flex items-center gap-3 px-2 py-1.5">
-                <div className="w-9 h-9 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm">
-                  {userDisplayName.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-text truncate">{userDisplayName}</p>
-                  <p className="text-xs text-text-muted truncate">{user?.email}</p>
-                </div>
-              </div>
-
+            <div className="space-y-3 pt-5 border-t border-border">
               <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-status-danger/10 border border-status-danger/25 text-status-danger font-semibold text-xs hover:bg-status-danger/20 active:scale-[0.98] transition-all min-h-[44px]"
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  handleLogout()
+                }}
+                className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-2xl bg-surface border border-border text-base font-bold text-status-danger hover:bg-status-danger/10 transition-colors min-h-[52px] shadow-subtle"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-5 h-5" />
                 <span>Deconectare</span>
               </button>
             </div>
@@ -304,16 +335,59 @@ export const StudentLayout: React.FC = () => {
         </div>
       )}
 
-      {/* Main Student Workspace with Contextual Ambient Lighting */}
-      <AmbientBackground variant={ambientVariant} className="flex-1 flex flex-col">
+      {/* Main Workspace Canvas with Contextual Educational World */}
+      <AmbientBackground
+        variant={
+          location.pathname.startsWith('/catalog')
+            ? 'catalog'
+            : location.pathname.startsWith('/lesson')
+            ? 'lesson'
+            : location.pathname.startsWith('/settings')
+            ? 'settings'
+            : location.pathname.startsWith('/pro')
+            ? 'pro'
+            : 'dashboard'
+        }
+        className="flex-1 flex flex-col"
+      >
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 focus:outline-none"
+          className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 focus:outline-none"
         >
           <Outlet />
         </main>
       </AmbientBackground>
+
+      {/* Student Workspace Footer */}
+      <footer className="border-t border-border bg-sidebar/90 backdrop-blur-md py-8 text-center text-xs text-text-muted relative z-20">
+        <div className="max-w-6xl mx-auto px-4 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400">
+                <BookOpen className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-display font-bold text-sm text-text">
+                Platforma<span className="text-cyan-400">Bac</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-6 text-xs text-text-muted">
+              <Link to="/dashboard" className="hover:text-cyan-400 transition-colors">Panou Studiu</Link>
+              <Link to="/catalog" className="hover:text-cyan-400 transition-colors">Catalog Materii</Link>
+              <Link to="/pro" className="hover:text-amber-400 transition-colors">Pachetul PRO</Link>
+              <Link to="/settings" className="hover:text-text transition-colors">Setări</Link>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <p className="text-[11px] text-text-subtle pt-2 border-t border-border-subtle">
+            © {new Date().getFullYear()} PlatformaBac.ro · Toate drepturile rezervate. Conform programei oficiale 2025–2026.
+          </p>
+        </div>
+      </footer>
     </div>
   )
 }
+
+export default StudentLayout

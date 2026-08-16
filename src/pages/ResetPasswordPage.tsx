@@ -1,34 +1,29 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
-import { AlertCircle, CheckCircle2, Loader2, Check, X } from 'lucide-react'
+import { BookOpen, KeyRound, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PasswordStrength } from '@/components/ui/PasswordStrength'
 import { evaluatePassword } from '@/utils/passwordValidation'
 
 export const ResetPasswordPage: React.FC = () => {
   const navigate = useNavigate()
+
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
-  const isMatching = confirmPassword.length > 0 && password === confirmPassword
-  const isMismatch = confirmPassword.length > 0 && password !== confirmPassword
+  const passwordEvaluation = evaluatePassword(password)
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!password || !confirmPassword) {
-      setError('Te rugăm să introduci și să confirmi noua parolă.')
-      return
-    }
-
-    const evaluation = evaluatePassword(password)
-    if (!evaluation.isAllValid) {
-      setError('Noua parolă nu îndeplinește toate cele 5 cerințe de securitate obligatorii.')
+    if (!passwordEvaluation.isAllValid) {
+      setError('Noua parolă trebuie să respecte toate cerințele de securitate de mai jos.')
       return
     }
 
@@ -37,130 +32,155 @@ export const ResetPasswordPage: React.FC = () => {
       return
     }
 
-    try {
-      setLoading(true)
+    setLoading(true)
 
+    try {
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       })
 
       if (updateError) {
-        console.error('[ResetPasswordPage] Supabase update password error:', updateError)
-        setError(updateError.message || 'Nu s-a putut actualiza parola. Verifică valabilitatea linkului.')
-        return
+        setError(updateError.message || 'Nu am putut actualiza parola. Linkul ar putea fi expirat.')
+      } else {
+        setSuccess(true)
+        setTimeout(() => {
+          navigate('/login', { replace: true })
+        }, 2500)
       }
-
-      setSuccess(true)
-      setTimeout(() => {
-        navigate('/login', { replace: true })
-      }, 3000)
-    } catch (err) {
-      console.error('[ResetPasswordPage] Unexpected error:', err)
-      setError('A apărut o eroare neașteptată la resetarea parolei.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată.')
     } finally {
       setLoading(false)
     }
   }
 
+  if (success) {
+    return (
+      <div className="max-w-md mx-auto py-12 px-4 animate-fadeIn">
+        <div className="rounded-xl border border-status-success/30 bg-surface p-8 text-center space-y-4 shadow-raised">
+          <div className="w-12 h-12 rounded-lg bg-status-success/15 border border-status-success/30 text-status-success flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="font-display text-xl font-bold text-text">Parolă actualizată!</h2>
+            <p className="text-xs text-text-muted">
+              Parola ta a fost schimbată cu succes. Te redirecționăm către autentificare...
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="max-w-md mx-auto py-8 sm:py-12 px-4">
-      <div className="glass-panel-cyan p-6 sm:p-8 rounded-3xl space-y-6 shadow-2xl border border-cyan-500/20">
-        <div className="text-center space-y-1.5">
-          <h2 className="text-2xl font-extrabold tracking-tight text-text">Setare parolă nouă</h2>
+    <div className="max-w-md mx-auto py-8 sm:py-16 px-4 animate-fadeIn">
+      <div className="rounded-xl border border-border bg-surface p-6 sm:p-8 space-y-6 shadow-raised">
+        <div className="text-center space-y-2">
+          <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mx-auto">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <h1 className="font-display text-2xl font-bold text-text">
+            Setează Noua Parolă
+          </h1>
           <p className="text-xs sm:text-sm text-text-muted">
-            Introdu noua ta parolă securizată mai jos.
+            Alege o parolă sigură pentru a-ți proteja contul.
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-xl bg-status-danger/10 border border-status-danger/30 text-status-danger text-xs sm:text-sm flex items-start gap-2.5">
+          <div
+            role="alert"
+            className="p-3.5 rounded-lg bg-status-danger/10 border border-status-danger/30 text-status-danger text-xs flex items-start gap-2.5"
+          >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        {success ? (
-          <div className="space-y-4 text-center py-4">
-            <div className="w-12 h-12 rounded-full bg-status-success/15 text-status-success border border-status-success/30 flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-bold text-text">Parolă schimbată cu succes!</h3>
-              <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-                Parola ta a fost actualizată. Te redirecționăm către pagina de autentificare...
-              </p>
-            </div>
-            <Link
-              to="/login"
-              className="inline-block mt-4 text-xs sm:text-sm font-bold text-cyan-400 hover:underline"
-            >
-              Mergi la Autentificare acum
-            </Link>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label htmlFor="new-password" className="block text-xs font-semibold text-text">
+              Noua parolă
+            </label>
+            <PasswordInput
+              id="new-password"
+              required
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-surface-elevated/70 border border-border text-xs sm:text-sm text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all min-h-[42px]"
+            />
           </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label htmlFor="reset-password" className="text-xs font-semibold text-text-muted">
-                Parolă nouă <span className="text-status-danger">*</span>
-              </label>
-              <PasswordInput
-                id="reset-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                disabled={loading}
-                autoComplete="new-password"
-              />
+
+          {password.length > 0 && (
+            <div className="p-3 rounded-lg bg-surface-elevated/40 border border-border-subtle">
               <PasswordStrength password={password} />
             </div>
+          )}
 
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label htmlFor="reset-confirm-password" className="text-xs font-semibold text-text-muted">
-                  Confirmă noua parolă <span className="text-status-danger">*</span>
-                </label>
-                {isMatching && (
-                  <span className="text-xs font-semibold text-status-success flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5" />
+          <div className="space-y-1.5">
+            <label htmlFor="confirm-new-password" className="block text-xs font-semibold text-text">
+              Confirmă noua parolă
+            </label>
+            <PasswordInput
+              id="confirm-new-password"
+              required
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="••••••••"
+              className="w-full px-3.5 py-2.5 rounded-lg bg-surface-elevated/70 border border-border text-xs sm:text-sm text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all min-h-[42px]"
+            />
+            {confirmPassword.length > 0 && (
+              <p
+                className={`text-[11px] font-medium flex items-center gap-1 ${
+                  passwordsMatch ? 'text-status-success' : 'text-status-danger'
+                }`}
+              >
+                {passwordsMatch ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3" />
                     <span>Parolele coincid</span>
-                  </span>
-                )}
-                {isMismatch && (
-                  <span className="text-xs font-semibold text-status-danger flex items-center gap-1">
-                    <X className="w-3.5 h-3.5" />
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-3 h-3" />
                     <span>Parolele nu coincid</span>
-                  </span>
+                  </>
                 )}
-              </div>
-              <PasswordInput
-                id="reset-confirm-password"
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••••••"
-                disabled={loading}
-                autoComplete="new-password"
-              />
-            </div>
+              </p>
+            )}
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-glow flex items-center justify-center gap-2 disabled:opacity-60 min-h-[46px]"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Se salvează noua parolă...</span>
-                </>
-              ) : (
-                <span>Salvează noua parolă</span>
-              )}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            disabled={loading || !passwordEvaluation.isAllValid || !passwordsMatch}
+            className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs sm:text-sm active:scale-[0.98] transition-all shadow-subtle disabled:opacity-40 disabled:cursor-not-allowed min-h-[44px]"
+          >
+            {loading ? (
+              <span>Se actualizează...</span>
+            ) : (
+              <>
+                <KeyRound className="w-4 h-4" />
+                <span>Actualizează parola</span>
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="pt-2 border-t border-border/60 text-center">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-text-muted hover:text-cyan-400 transition-colors"
+          >
+            <span>Mergi la autentificare</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </div>
   )
 }
+
+export default ResetPasswordPage

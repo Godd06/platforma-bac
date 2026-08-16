@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { Lesson, Chapter, Subject } from '@/types/database'
+import type { Lesson, Chapter, Subject, LessonProgress } from '@/types/database'
 import type { LessonBlockData } from '@/types/blocks'
 
 // Exact access states required by Rule 2
@@ -61,12 +61,6 @@ async function checkIsProUser(userId: string | undefined): Promise<boolean> {
 
 /**
  * Service function to fetch a single lesson and its blocks from Supabase.
- * Strictly implements access state rules based on User Rights & Access Level:
- * - FREE + blocks -> ACCESSIBLE
- * - FREE + zero blocks -> ACCESSIBLE (empty state)
- * - PRO + PRO user -> ACCESSIBLE (even if zero blocks)
- * - PRO + non-PRO user -> PRO_REQUIRED (metadata + PRO Gate)
- * - unpublished/not found -> NOT_FOUND
  */
 export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFetchResult> {
   if (!lessonId || typeof lessonId !== 'string') {
@@ -100,14 +94,11 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
         prevLesson: null,
         nextLesson: null,
         accessState: 'ERROR',
-        errorMessage: lessonError.message || 'Eroare la conectarea cu baza de date.',
+        errorMessage: 'Nu am putut încărca lecția din baza de date.',
       }
     }
 
-    const lesson = rawLesson as Lesson | null
-
-    // If lesson metadata does not exist in DB -> NOT_FOUND (404)
-    if (!lesson) {
+    if (!rawLesson) {
       return {
         lesson: null,
         blocks: [],
@@ -116,36 +107,38 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
         prevLesson: null,
         nextLesson: null,
         accessState: 'NOT_FOUND',
-        errorMessage: 'Lecția solicitată nu a fost găsită sau este indisponibilă.',
+        errorMessage: 'Lecția căutată nu a fost găsită sau nu este publicată.',
       }
     }
 
-    // 2. Fetch parent chapter & subject metadata
+    const lesson = rawLesson as Lesson
+
+    // Fetch parent chapter and subject
     let chapter: Chapter | null = null
     let subject: Subject | null = null
     let prevLesson: { id: string; title: string } | null = null
     let nextLesson: { id: string; title: string } | null = null
 
     if (lesson.chapter_id) {
-      const { data: rawChapter } = await supabase
+      const { data: chapterData } = await supabase
         .from('chapters')
         .select('*')
         .eq('id', lesson.chapter_id)
         .maybeSingle()
 
-      chapter = (rawChapter as Chapter | null) || null
+      chapter = (chapterData as unknown as Chapter) || null
 
-      if (chapter?.subject_id) {
-        const { data: rawSubject } = await supabase
+      if (chapter && chapter.subject_id) {
+        const { data: subjectData } = await supabase
           .from('subjects')
           .select('*')
           .eq('id', chapter.subject_id)
           .maybeSingle()
 
-        subject = (rawSubject as Subject | null) || null
+        subject = (subjectData as unknown as Subject) || null
       }
 
-      // Fetch adjacent lessons in same chapter for navigation
+      // 2. Fetch sibling lessons for sequential navigation
       const { data: siblingLessons } = await supabase
         .from('lessons')
         .select('id, title, sort_order')
@@ -171,7 +164,7 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       }
     }
 
-    // 3. Determine Access State based on user rights & access_level (Objective 4 compliance)
+    // 3. Determine Access State based on user rights & access_level
     const { data: sessionData } = await supabase.auth.getSession()
     const currentUserId = sessionData?.session?.user?.id
     const isPro = await checkIsProUser(currentUserId)
@@ -222,5 +215,101 @@ export async function fetchLessonWithBlocks(lessonId: string): Promise<LessonFet
       accessState: 'ERROR',
       errorMessage: 'A apărut o eroare neașteptată la conectarea cu serverul.',
     }
+  }
+}
+
+/**
+ * Fetch progress record for a single lesson for the authenticated user
+ */
+export async function getLessonProgress(lessonId: string): Promise<LessonProgress | null> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const userId = sessionData?.session?.user?.id
+    if (!userId || !lessonId) return null
+
+    const { data, error } = await supabase
+      .from('lesson_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('lesson_id', lessonId)
+      .maybeSingle()
+
+    if (error || !data) {
+      return null
+    }
+
+    return data as unknown as LessonProgress
+  } catch (err) {
+    console.error('[lessonService] Error fetching lesson progress:', err)
+    return null
+  }
+}
+
+/**
+ * Record reading progress for a lesson via trusted server-side RPC (record_lesson_progress)
+ */
+export async function recordLessonProgress(
+  lessonId: string,
+  progressPercent: number,
+  lastBlockId?: string | null
+): Promise<LessonProgress | null> {
+  try {
+    const { data, error } = await supabase.rpc('record_lesson_progress', {
+      p_lesson_id: lessonId,
+      p_progress_percent: Math.min(100, Math.max(0, Math.round(progressPercent))),
+      p_last_block_id: lastBlockId || null,
+    } as never)
+
+    if (error) {
+      console.error('[lessonService] Error recording lesson progress via RPC:', error.message)
+      return null
+    }
+
+    const res = data as { success: boolean; progress: LessonProgress } | null
+    return res?.progress || null
+  } catch (err) {
+    console.error('[lessonService] Unexpected error recording progress:', err)
+    return null
+  }
+}
+
+/**
+ * Mark a lesson as fully completed via trusted server-side RPC (record_lesson_progress with 100%)
+ */
+export async function markLessonCompleted(
+  lessonId: string
+): Promise<{ progress: LessonProgress; streak: { currentStreak: number; longestStreak: number } } | null> {
+  try {
+    const { data, error } = await supabase.rpc('record_lesson_progress', {
+      p_lesson_id: lessonId,
+      p_progress_percent: 100,
+      p_last_block_id: null,
+    } as never)
+
+    if (error) {
+      console.error('[lessonService] Error marking lesson completed via RPC:', error.message)
+      return null
+    }
+
+    const res = data as {
+      success: boolean
+      progress: LessonProgress
+      streak: { current_streak: number; longest_streak: number }
+    } | null
+
+    if (!res || !res.progress) {
+      return null
+    }
+
+    return {
+      progress: res.progress,
+      streak: {
+        currentStreak: res.streak?.current_streak || 1,
+        longestStreak: res.streak?.longest_streak || 1,
+      },
+    }
+  } catch (err) {
+    console.error('[lessonService] Unexpected error marking lesson completed:', err)
+    return null
   }
 }

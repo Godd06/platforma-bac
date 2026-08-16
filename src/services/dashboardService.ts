@@ -109,13 +109,25 @@ async function fetchProfile(userId: string) {
  */
 async function fetchContinueLearning(userId: string): Promise<ContinueLearningItem | null> {
   try {
-    const { data: progressRows, error: progressErr } = await supabase
+    // 1. Try finding latest in_progress lesson
+    let { data: progressRows } = await supabase
       .from('lesson_progress')
       .select('lesson_id, progress_percent, last_block_id, updated_at')
       .eq('user_id', userId)
       .eq('status', 'in_progress')
       .order('updated_at', { ascending: false })
       .limit(1)
+
+    // 2. If no in_progress lesson, fallback to most recently updated lesson (e.g. completed)
+    if (!progressRows || progressRows.length === 0) {
+      const { data: latestRows } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id, progress_percent, last_block_id, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+      progressRows = latestRows
+    }
 
     const progressList = progressRows as Array<{
       lesson_id: string
@@ -124,7 +136,7 @@ async function fetchContinueLearning(userId: string): Promise<ContinueLearningIt
       updated_at: string
     }> | null
 
-    if (progressErr || !progressList || progressList.length === 0) {
+    if (!progressList || progressList.length === 0) {
       return null
     }
 

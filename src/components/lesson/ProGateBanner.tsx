@@ -2,57 +2,64 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react'
 
+import { AnimatedBorderCard } from '@/components/ui/AnimatedBorderCard'
+
 interface Props {
   lessonTitle: string
 }
 
 export const ProGateBanner: React.FC<Props> = ({ lessonTitle }) => {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-surface to-surface p-6 sm:p-10 shadow-2xl text-center space-y-6">
-      <div className="w-16 h-16 rounded-3xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(245,158,11,0.25)]">
-        <Lock className="w-8 h-8" />
+    <AnimatedBorderCard
+      variant="pro"
+      glow={true}
+      className="max-w-prose mx-auto"
+      innerClassName="glass-featured-pro p-6 sm:p-8 text-center space-y-5"
+    >
+      <div className="w-11 h-11 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 flex items-center justify-center mx-auto">
+        <Lock className="w-5 h-5" />
       </div>
 
-      <div className="max-w-lg mx-auto space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Conținut Exclusiv PRO</span>
+      <div className="space-y-1.5 max-w-md mx-auto">
+        <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/25">
+          <Sparkles className="w-3 h-3" />
+          <span>Conținut Inclus în Pachetul PRO</span>
         </div>
-        <h3 className="text-xl sm:text-2xl font-black text-text tracking-tight">
-          Lecția „{lessonTitle}” face parte din pachetul PRO
+        <h3 className="font-display text-lg sm:text-xl font-bold text-text tracking-tight">
+          Lecția „{lessonTitle}” este rezervată membrilor PRO
         </h3>
-        <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
-          Deblochează eseul complet, analiza aprofundată pe scene și citate, schemele de memorare și materialele audio pentru această operă.
+        <p className="text-xs text-text-muted leading-relaxed">
+          Deblochează eseul redactat conform baremului oficial, analiza pe scene/citate și sintezele audio narate.
         </p>
       </div>
 
-      <div className="max-w-md mx-auto p-4 rounded-2xl bg-surface-elevated/70 border border-border/80 text-left space-y-2">
-        <span className="text-xs font-bold text-text uppercase tracking-wider block mb-2">
+      <div className="p-3.5 rounded-xl glass-subtle text-left space-y-1.5 max-w-md mx-auto">
+        <span className="text-[10px] font-bold text-text-subtle uppercase tracking-wider block mb-1">
           Ce include pachetul complet:
         </span>
-        <div className="flex items-center gap-2.5 text-xs text-text">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+        <div className="flex items-center gap-2 text-xs text-text">
+          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
           <span>Eseul model redactat la nivel de 10 pe barem</span>
         </div>
-        <div className="flex items-center gap-2.5 text-xs text-text">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-          <span>Sinteza audio pentru învățare oriunde</span>
+        <div className="flex items-center gap-2 text-xs text-text">
+          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span>Sinteza audio pentru recapitulare</span>
         </div>
-        <div className="flex items-center gap-2.5 text-xs text-text">
-          <CheckCircle2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-          <span>Quiz-uri interactive de verificare rapidă</span>
+        <div className="flex items-center gap-2 text-xs text-text">
+          <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span>Grile și teste de autoevaluare</span>
         </div>
       </div>
 
-      <div className="pt-2">
+      <div className="pt-1">
         <Link
           to="/pro"
-          className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-cyan-500 text-black font-bold text-sm hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-glow min-h-[48px]"
+          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-subtle min-h-[42px]"
         >
           <span>Deblochează accesul PRO</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
-    </div>
+    </AnimatedBorderCard>
   )
 }

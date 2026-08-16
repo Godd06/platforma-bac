@@ -1,15 +1,30 @@
 <!doctype html>
-<html lang="ro" class="dark">
+<html lang="ro">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Platformă Pregătire Bacalaureat</title>
-    <meta name="description" content="Platformă web premium pentru pregătirea examenului de Bacalaureat - Limba Română și Istorie." />
-    <!-- Google Fonts Inter -->
+    <title>Platformă Bacalaureat — Premium Learning OS</title>
+    <meta name="description" content="Platformă educațională modernă pentru pregătirea examenului de Bacalaureat — Limba Română și Istorie." />
+    <!-- Prevent theme flash before first paint -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('platforma_bac_theme');
+          var isLight = saved === 'light' || (saved === 'system' && window.matchMedia('(prefers-color-scheme: light)').matches);
+          var theme = isLight ? 'light' : 'dark';
+          document.documentElement.classList.add(theme);
+          document.documentElement.style.colorScheme = theme;
+        } catch (e) {
+          document.documentElement.classList.add('dark');
+          document.documentElement.style.colorScheme = 'dark';
+        }
+      })();
+    </script>
+    <!-- Google Fonts: Plus Jakarta Sans (Headings/Display) + Inter (Body/UI) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   </head>
   <body class="bg-background text-text font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
     <div id="root"></div>

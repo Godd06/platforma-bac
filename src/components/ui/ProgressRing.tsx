@@ -26,8 +26,8 @@ export const ProgressRing: React.FC<ProgressRingProps> = ({
       <svg width={size} height={size} className="transform -rotate-90">
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#06b6d4" />
-            <stop offset="100%" stopColor="#22d3ee" />
+            <stop offset="0%" stopColor="var(--accent)" />
+            <stop offset="100%" stopColor="var(--accent-hover)" />
           </linearGradient>
         </defs>
         {/* Background track */}

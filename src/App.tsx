@@ -1,6 +1,7 @@
 import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
+import { ThemeProvider } from '@/context/ThemeContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AdminProtectedRoute } from '@/components/auth/AdminProtectedRoute'
 
@@ -31,52 +32,56 @@ import { AdminAnalyticsPage } from '@/pages/admin/AdminAnalyticsPage'
 import { AdminSettingsPage } from '@/pages/admin/AdminSettingsPage'
 
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { SmartScrollRestoration } from '@/components/ui/SmartScrollRestoration'
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Routes (Accessible without authentication) */}
-          <Route element={<PublicLayout />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="/reset-password" element={<ResetPasswordPage />} />
-            <Route path="/pro" element={<ProUpgradePage />} />
-          </Route>
-
-          {/* Protected Educational & Student Routes (Requires Authentication) */}
-          <Route element={<ProtectedRoute />}>
-            <Route element={<StudentLayout />}>
-              <Route path="/catalog" element={<CatalogPage />} />
-              <Route path="/catalog/:subject" element={<SubjectPage />} />
-              <Route path="/lesson/:lessonId" element={<LessonPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <SmartScrollRestoration />
+          <Routes>
+            {/* Public Routes (Accessible without authentication) */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/pro" element={<ProUpgradePage />} />
             </Route>
-          </Route>
 
-          {/* Protected Admin Routes (Requires Staff Roles) */}
-          <Route element={<AdminProtectedRoute />}>
-            <Route element={<AdminLayout />}>
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/admin/content" element={<AdminContentPage />} />
-              <Route path="/admin/media" element={<AdminMediaPage />} />
-              <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
-              <Route path="/admin/users" element={<AdminUsersPage />} />
-              <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
-              <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
-              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            {/* Protected Educational & Student Routes (Requires Authentication) */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<StudentLayout />}>
+                <Route path="/catalog" element={<CatalogPage />} />
+                <Route path="/catalog/:subject" element={<SubjectPage />} />
+                <Route path="/lesson/:lessonId" element={<LessonPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
             </Route>
-          </Route>
 
-          {/* Catch-all 404 */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* Protected Admin Routes (Requires Staff Roles) */}
+            <Route element={<AdminProtectedRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/admin/content" element={<AdminContentPage />} />
+                <Route path="/admin/media" element={<AdminMediaPage />} />
+                <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
+                <Route path="/admin/users" element={<AdminUsersPage />} />
+                <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
+                <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+                <Route path="/admin/settings" element={<AdminSettingsPage />} />
+              </Route>
+            </Route>
+
+            {/* Catch-all 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

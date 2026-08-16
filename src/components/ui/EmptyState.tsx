@@ -18,14 +18,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-dashed border-border/80 bg-surface/40 ${className}`}
+      className={`flex flex-col items-center justify-center text-center p-6 rounded-xl border border-dashed border-border bg-surface/40 ${className}`}
     >
-      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center mb-3.5 shadow-sm">
-        {icon || <FolderOpen className="w-6 h-6" />}
+      <div className="w-10 h-10 rounded-lg bg-surface-elevated text-cyan-400 border border-border flex items-center justify-center mb-3">
+        {icon || <FolderOpen className="w-5 h-5" />}
       </div>
-      <h4 className="text-base font-bold text-text mb-1">{title}</h4>
+      <h4 className="font-display text-sm font-bold text-text mb-1">{title}</h4>
       {description && (
-        <p className="text-xs sm:text-sm text-text-muted max-w-sm leading-relaxed mb-4">
+        <p className="text-xs text-text-muted max-w-sm leading-relaxed mb-3">
           {description}
         </p>
       )}

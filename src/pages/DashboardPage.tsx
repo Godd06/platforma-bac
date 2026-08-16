@@ -14,7 +14,7 @@ import { BackToTop } from '@/components/ui/BackToTop'
 export const DashboardPage: React.FC = () => {
   const { data, loading, error, refetch } = useDashboardData()
 
-  // 1. Loading State (Matching Skeleton)
+  // 1. Loading State (Matching exact layout skeleton)
   if (loading) {
     return <DashboardSkeleton />
   }
@@ -22,7 +22,7 @@ export const DashboardPage: React.FC = () => {
   // 2. Error State (Actionable error with retry)
   if (error || !data) {
     return (
-      <div className="max-w-xl mx-auto py-16 px-4">
+      <div className="max-w-md mx-auto py-16 px-4">
         <ErrorState
           title="Eroare la încărcarea panoului"
           message={error || 'Nu am putut încărca datele tale de progres. Te rugăm să reîncerci.'}
@@ -33,39 +33,53 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8 pb-12 animate-fadeIn max-w-7xl mx-auto">
-      {/* 1. Header & Identity */}
-      <DashboardHeader
-        profile={data.profile}
-        subscription={data.subscription}
-      />
+    <div className="space-y-6 pb-12 max-w-6xl mx-auto">
+      {/* 1. Greeting & Identity Header */}
+      <div className="animate-stagger-1">
+        <DashboardHeader
+          profile={data.profile}
+          subscription={data.subscription}
+        />
+      </div>
 
-      {/* 2. PRO Banner (if not already Pro) */}
-      <ProStatusCard subscription={data.subscription} />
-
-      {/* 3. Main Operational Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Columns: Action & Subject Breakdown */}
+      {/* 2. Main Operational Workspace: Continue Learning Dominant */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Left 2 Columns: Dominant Action & Subject Breakdown */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Continue Learning (Dominant action) */}
-          <ContinueLearningCard data={data.continueLearning} />
+          {/* Continue Learning (Immediate Next Step) */}
+          <div className="animate-stagger-2">
+            <ContinueLearningCard data={data.continueLearning} />
+          </div>
 
-          {/* Subjects Progress */}
-          <SubjectProgressCard subjects={data.subjectProgress} />
+          {/* Subjects Progress Breakdown */}
+          <div className="animate-stagger-3">
+            <SubjectProgressCard subjects={data.subjectProgress} />
+          </div>
         </div>
 
-        {/* Right 1 Column: Progress & Streak Metrics */}
+        {/* Right 1 Column: Metrics & PRO Status */}
         <div className="space-y-6">
           {/* Global Bac Progress Ring */}
-          <GlobalProgressCard data={data.globalProgress} />
+          <div className="animate-stagger-2">
+            <GlobalProgressCard data={data.globalProgress} />
+          </div>
 
-          {/* Streak Card */}
-          <StreakCard data={data.streak} />
+          {/* Streak Habit Tracker */}
+          <div className="animate-stagger-3">
+            <StreakCard data={data.streak} />
+          </div>
+
+          {/* PRO Banner / Status */}
+          <div className="animate-stagger-4">
+            <ProStatusCard subscription={data.subscription} />
+          </div>
         </div>
       </div>
 
-      {/* 4. Recent Activity Timeline */}
-      <RecentActivityList activities={data.recentActivity} />
+      {/* 3. Recent Activity Timeline */}
+      <div className="animate-stagger-5">
+        <RecentActivityList activities={data.recentActivity} />
+      </div>
 
       {/* Back to Top */}
       <BackToTop />

@@ -1,197 +1,431 @@
 import React, { useState, useEffect } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { BookOpen, Sparkles, Menu, X, ArrowRight, LogIn, UserPlus } from 'lucide-react'
+import { Outlet, Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
+import {
+  BookOpen,
+  Menu,
+  X,
+  LayoutDashboard,
+  Sparkles,
+  LogOut,
+  User,
+  LogIn,
+  ArrowRight,
+  ShieldCheck,
+  Settings,
+} from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { AmbientBackground } from '@/components/ui/AmbientBackground'
+import { CommandPalette } from '@/components/ui/CommandPalette'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export const PublicLayout: React.FC = () => {
+  const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const navigate = useNavigate()
   const location = useLocation()
 
-  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(
-    location.pathname
-  )
-
+  // Track scroll position to intensify glassmorphic header
   useEffect(() => {
-    setMobileMenuOpen(false)
-  }, [location.pathname])
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden'
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          setMobileMenuOpen(false)
-        }
-      }
-      window.addEventListener('keydown', handleKeyDown)
-      return () => {
-        document.body.style.overflow = ''
-        window.removeEventListener('keydown', handleKeyDown)
-      }
     } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
       document.body.style.overflow = ''
     }
   }, [mobileMenuOpen])
 
+  const handleLogout = async () => {
+    try {
+      await signOut()
+      navigate('/login', { replace: true })
+    } catch (err) {
+      console.error('[PublicLayout] Error during sign out:', err)
+    }
+  }
+
+  const userDisplayName =
+    (user?.user_metadata?.full_name as string) ||
+    (user?.email ? user.email.split('@')[0] : 'Elev')
+
   return (
-    <div className="min-h-screen flex flex-col bg-background text-text relative">
+    <div className="min-h-screen flex flex-col bg-background text-text selection:bg-cyan-500/20 selection:text-cyan-300 relative">
       {/* Skip to Content for Accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-black focus:font-bold focus:rounded-lg focus:shadow-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-cyan-500 focus:text-black focus:font-bold focus:rounded-xl focus:shadow-lg focus:outline-none"
       >
         Sari la conținut
       </a>
 
-      {/* Public Header */}
-      <header className="sticky top-0 z-30 glass-panel border-b border-border/70 backdrop-blur-heavy">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+      {/* Global Navbar with Generous Luxury Height & Scroll-linked Glass Intensification */}
+      <header
+        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'glass-floating border-b border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.25)]'
+            : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
+        }`}
+      >
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-4">
+          {/* Brand Logo */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 font-extrabold text-lg sm:text-xl text-text hover:opacity-90 transition-opacity flex-shrink-0"
+            className="flex items-center gap-3 font-bold text-base text-text hover:opacity-90 transition-opacity group"
           >
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)]">
-              <BookOpen className="w-4 h-4" />
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.25)] group-hover:scale-105 transition-transform">
+              <BookOpen className="w-5 h-5" />
             </div>
-            <span>
-              Bacalaureat<span className="text-cyan-400">.ro</span>
-            </span>
+            <div className="flex flex-col">
+              <span className="font-display font-bold text-lg tracking-tight text-text leading-tight">
+                Platforma<span className="text-cyan-400">Bac</span>
+              </span>
+              <span className="text-[10px] text-text-subtle font-medium -mt-0.5 tracking-wider uppercase">
+                Spațiu Digital de Studiu
+              </span>
+            </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden sm:flex items-center gap-3 sm:gap-5">
-            <Link
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1.5" aria-label="Navigare Principală">
+            {isAuthenticated && (
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center gap-2 ${
+                    isActive
+                      ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                  }`
+                }
+              >
+                <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+                <span>Panou Studiu</span>
+              </NavLink>
+            )}
+
+            <NavLink
+              to="/catalog"
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all min-h-[42px] flex items-center ${
+                  isActive
+                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                }`
+              }
+            >
+              Catalog Materii
+            </NavLink>
+
+            <NavLink
               to="/pro"
-              className="text-xs sm:text-sm font-semibold text-amber-400 hover:text-amber-300 transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 shadow-sm"
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 min-h-[42px] ${
+                  isActive
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold shadow-subtle'
+                    : 'text-amber-400/90 hover:text-amber-300 hover:bg-surface-elevated/60'
+                }`
+              }
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>PRO</span>
-            </Link>
-
-            <Link
-              to="/login"
-              className="text-xs sm:text-sm font-medium text-text-muted hover:text-cyan-400 transition-colors px-3 py-1.5"
-            >
-              Autentificare
-            </Link>
-
-            <Link
-              to="/register"
-              className="text-xs sm:text-sm font-bold px-4 py-2 rounded-xl bg-cyan-500 text-black hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-glow flex-shrink-0 min-h-[40px] inline-flex items-center gap-1.5"
-            >
-              <span>Creează cont</span>
-            </Link>
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Abonament PRO</span>
+            </NavLink>
           </nav>
 
-          {/* Mobile Hamburger Button */}
-          <div className="flex sm:hidden items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen((prev) => !prev)}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="public-mobile-menu"
-              aria-label={mobileMenuOpen ? 'Închide meniul' : 'Deschide meniul'}
-              className="w-11 h-11 flex items-center justify-center rounded-xl text-text-muted hover:text-cyan-400 bg-surface-elevated border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-            >
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-      </header>
+          {/* Desktop Auth CTAs + ThemeToggle */}
+          <div className="hidden md:flex items-center gap-3">
+            <CommandPalette />
+            <ThemeToggle />
+            {loading ? (
+              <Skeleton className="h-10 w-28" rounded="xl" />
+            ) : isAuthenticated ? (
+              <div className="flex items-center gap-2.5">
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="p-2.5 rounded-xl text-amber-400 hover:bg-amber-500/15 border border-amber-500/30 transition-colors"
+                    title="Panou Administrare"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                  </Link>
+                )}
 
-      {/* Robust Mobile Drawer Overlay */}
-      {mobileMenuOpen && (
-        <div
-          id="public-mobile-menu"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Meniu Navigare"
-          className="fixed inset-0 z-50 sm:hidden flex justify-end"
-        >
-          {/* Backdrop Overlay */}
-          <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity animate-fadeIn"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-
-          {/* Drawer Slide-over Panel */}
-          <div className="relative w-72 max-w-[85vw] h-full bg-surface border-l border-border z-10 flex flex-col justify-between p-5 shadow-2xl overflow-y-auto animate-fadeIn">
-            <div>
-              <div className="flex items-center justify-between pb-4 border-b border-border/60 mb-4">
-                <div className="flex items-center gap-2 font-bold text-base text-text">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <span>Bacalaureat.ro</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMobileMenuOpen(false)}
-                  aria-label="Închide meniul"
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text bg-surface-elevated border border-border"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <nav className="space-y-2">
                 <Link
-                  to="/pro"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-400 text-sm font-semibold min-h-[48px]"
+                  to="/settings"
+                  className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-colors"
+                  title="Setări Cont"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <Sparkles className="w-4 h-4 text-amber-400" />
-                    <span>Abonament PRO</span>
+                  <div className="w-7 h-7 rounded-lg bg-surface-elevated text-cyan-400 border border-border flex items-center justify-center font-bold text-xs shadow-subtle">
+                    {userDisplayName.charAt(0).toUpperCase() || <User className="w-3.5 h-3.5" />}
                   </div>
-                  <ArrowRight className="w-4 h-4" />
+                  <span className="max-w-[130px] truncate">{userDisplayName}</span>
                 </Link>
 
                 <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-3 rounded-xl text-text hover:bg-surface-elevated text-sm font-medium min-h-[48px]"
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[42px]"
                 >
-                  <LogIn className="w-4 h-4 text-text-muted" />
+                  <span>Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="p-2.5 rounded-xl text-text-muted hover:text-status-danger hover:bg-status-danger/10 transition-colors"
+                  title="Deconectare"
+                  aria-label="Deconectare"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated transition-all min-h-[42px]"
+                >
+                  <LogIn className="w-4 h-4" />
                   <span>Autentificare</span>
                 </Link>
 
                 <Link
                   to="/register"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-cyan-500 text-black hover:bg-cyan-400 text-sm font-bold shadow-glow min-h-[48px]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 text-black font-bold text-xs hover:bg-cyan-400 active:scale-[0.98] transition-all shadow-[0_0_20px_rgba(6,182,212,0.30)] min-h-[42px]"
                 >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Creează cont gratuit</span>
+                  <span>Cont Gratuit</span>
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Hamburger Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="public-mobile-drawer"
+            aria-label={mobileMenuOpen ? 'Închide meniul principal' : 'Deschide meniul principal'}
+            className="md:hidden w-11 h-11 flex items-center justify-center rounded-2xl text-text-muted hover:text-text bg-surface border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-subtle"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
+      </header>
+
+      {/* Mobile Navigation Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          id="public-mobile-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Meniu Navigare Public"
+          className="fixed inset-0 z-50 md:hidden flex justify-end"
+        >
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity animate-fadeIn"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+
+          <div className="relative w-84 max-w-[90vw] h-full bg-sidebar border-l border-border p-6 flex flex-col justify-between shadow-2xl z-10 animate-fadeIn select-none">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-border">
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 font-bold text-base text-text"
+                >
+                  <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <span className="font-display font-bold text-lg tracking-tight text-text">
+                    Platforma<span className="text-cyan-400">Bac</span>
+                  </span>
+                </Link>
+
+                <div className="flex items-center gap-2">
+                  <ThemeToggle />
+                  <button
+                    type="button"
+                    onClick={() => setMobileMenuOpen(false)}
+                    aria-label="Închide meniul"
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-text bg-surface border border-border"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <nav className="space-y-2" aria-label="Navigare Mobilă">
+                {isAuthenticated && (
+                  <NavLink
+                    to="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
+                        isActive
+                          ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                          : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                      }`
+                    }
+                  >
+                    <LayoutDashboard className="w-5 h-5 text-cyan-400" />
+                    <span>Panou Studiu</span>
+                  </NavLink>
+                )}
+
+                <NavLink
+                  to="/catalog"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
+                      isActive
+                        ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                        : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                    }`
+                  }
+                >
+                  <BookOpen className="w-5 h-5 text-cyan-400" />
+                  <span>Catalog Materii</span>
+                </NavLink>
+
+                <NavLink
+                  to="/pro"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
+                      isActive
+                        ? 'bg-amber-500/15 text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                        : 'text-amber-400/90 hover:text-amber-300 hover:bg-surface-elevated/60'
+                    }`
+                  }
+                >
+                  <Sparkles className="w-5 h-5 text-amber-400" />
+                  <span>Abonament PRO</span>
+                </NavLink>
+
+                {isAuthenticated && (
+                  <NavLink
+                    to="/settings"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-semibold transition-all min-h-[52px] ${
+                        isActive
+                          ? 'bg-surface-active text-cyan-400 font-bold border border-cyan-500/30 shadow-subtle'
+                          : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
+                      }`
+                    }
+                  >
+                    <Settings className="w-5 h-5 text-cyan-400" />
+                    <span>Setări Cont</span>
+                  </NavLink>
+                )}
               </nav>
             </div>
 
-            <div className="pt-4 border-t border-border/60 text-xs text-text-muted text-center">
-              Pregătire examen Bacalaureat
+            <div className="space-y-3 pt-5 border-t border-border">
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleLogout()
+                  }}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3.5 rounded-2xl bg-surface border border-border text-base font-bold text-status-danger hover:bg-status-danger/10 transition-colors min-h-[52px] shadow-subtle"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Deconectare</span>
+                </button>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-surface border border-border text-base font-semibold text-text hover:bg-surface-elevated transition-colors min-h-[52px]"
+                  >
+                    <LogIn className="w-5 h-5" />
+                    <span>Autentificare</span>
+                  </Link>
+
+                  <Link
+                    to="/register"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2.5 px-4 py-3.5 rounded-2xl bg-cyan-500 text-black text-base font-bold hover:bg-cyan-400 transition-colors shadow-[0_0_20px_rgba(6,182,212,0.35)] min-h-[52px]"
+                  >
+                    <span>Creează Cont Gratuit</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content with Contextual Ambient Lighting */}
-      <AmbientBackground variant={isAuthPage ? 'auth' : 'landing'} className="flex-1 flex flex-col">
+      {/* Main Workspace Canvas with Contextual Educational World */}
+      <AmbientBackground
+        variant={
+          location.pathname.startsWith('/catalog')
+            ? 'catalog'
+            : location.pathname.startsWith('/pro')
+            ? 'pro'
+            : location.pathname.startsWith('/lesson')
+            ? 'lesson'
+            : location.pathname.startsWith('/settings')
+            ? 'settings'
+            : 'landing'
+        }
+        className="flex-1 flex flex-col"
+      >
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 focus:outline-none"
+          className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 focus:outline-none"
         >
           <Outlet />
         </main>
       </AmbientBackground>
 
       {/* Public Footer */}
-      <footer className="border-t border-border/40 py-6 text-center text-xs text-text-subtle relative z-10 bg-background/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 space-y-2">
-          <p>© {new Date().getFullYear()} Platformă Bacalaureat. Toate drepturile rezervate.</p>
+      <footer className="border-t border-border bg-sidebar/90 backdrop-blur-md py-8 text-center text-xs text-text-muted relative z-20">
+        <div className="max-w-6xl mx-auto px-4 space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400">
+                <BookOpen className="w-3.5 h-3.5" />
+              </div>
+              <span className="font-display font-bold text-sm text-text">
+                Platforma<span className="text-cyan-400">Bac</span>
+              </span>
+            </div>
+
+            <div className="flex items-center gap-6 text-xs text-text-muted">
+              <Link to="/catalog" className="hover:text-cyan-400 transition-colors">Catalog</Link>
+              <Link to="/pro" className="hover:text-amber-400 transition-colors">Pachetul PRO</Link>
+              <Link to="/login" className="hover:text-text transition-colors">Autentificare</Link>
+              <ThemeToggle />
+            </div>
+          </div>
+
+          <p className="text-[11px] text-text-subtle pt-2 border-t border-border-subtle">
+            © {new Date().getFullYear()} PlatformaBac.ro · Toate drepturile rezervate. Conform programei oficiale 2025–2026.
+          </p>
         </div>
       </footer>
     </div>
   )
 }
+
+export default PublicLayout

@@ -12,6 +12,7 @@ import { SubjectCard } from '@/components/catalog/SubjectCard'
 import { ChapterLessonsCard } from '@/components/catalog/ChapterLessonsCard'
 import { CatalogBreadcrumbs } from '@/components/catalog/CatalogBreadcrumbs'
 import { BackToTop } from '@/components/ui/BackToTop'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export const CatalogPage: React.FC = () => {
   const { subject: subjectSlug } = useParams<{ subject?: string }>()
@@ -66,15 +67,65 @@ export const CatalogPage: React.FC = () => {
     return matchTitle || matchDesc || matchLessons
   })
 
-  // 1. Loading State
+  // 1. Premium Loading Skeleton State
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto space-y-6 animate-pulse p-4 sm:p-6">
-        <div className="h-6 bg-surface-elevated rounded w-48" />
-        <div className="h-32 bg-surface/80 border border-border rounded-3xl" />
-        <div className="space-y-4">
-          <div className="h-24 bg-surface/80 border border-border rounded-3xl" />
-          <div className="h-24 bg-surface/80 border border-border rounded-3xl" />
+      <div className="max-w-5xl mx-auto space-y-6 pb-16 px-2 sm:px-4 animate-fadeIn select-none">
+        {/* Breadcrumb skeleton */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-28" rounded="md" />
+          <Skeleton className="h-4 w-4" rounded="sm" />
+          <Skeleton className="h-4 w-36" rounded="md" />
+        </div>
+
+        {/* Header card skeleton */}
+        <div className="p-6 sm:p-7 rounded-2xl glass-elevated border border-border space-y-2.5 shadow-subtle">
+          <Skeleton className="h-4 w-32" rounded="md" />
+          <Skeleton className="h-8 w-64" rounded="lg" />
+          <Skeleton className="h-4 w-full max-w-xl" rounded="md" />
+        </div>
+
+        {/* Search bar skeleton */}
+        <Skeleton className="h-11 w-full" rounded="xl" />
+
+        {/* Subject / Chapter Grid Skeleton */}
+        <div className="space-y-3.5 pt-2">
+          <div className="flex justify-between items-center pb-1">
+            <Skeleton className="h-5 w-44" rounded="md" />
+            <Skeleton className="h-4 w-20" rounded="md" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-6 rounded-2xl glass-elevated border border-border space-y-4 shadow-subtle">
+              <div className="flex justify-between">
+                <Skeleton className="w-12 h-12" rounded="2xl" />
+                <Skeleton className="h-6 w-20" rounded="lg" />
+              </div>
+              <Skeleton className="h-6 w-36" rounded="lg" />
+              <Skeleton className="h-3.5 w-full" rounded="md" />
+              <Skeleton className="h-10 w-full" rounded="xl" />
+            </div>
+
+            <div className="p-6 rounded-2xl glass-elevated border border-border space-y-4 shadow-subtle">
+              <div className="flex justify-between">
+                <Skeleton className="w-12 h-12" rounded="2xl" />
+                <Skeleton className="h-6 w-20" rounded="lg" />
+              </div>
+              <Skeleton className="h-6 w-36" rounded="lg" />
+              <Skeleton className="h-3.5 w-full" rounded="md" />
+              <Skeleton className="h-10 w-full" rounded="xl" />
+            </div>
+
+            <div className="p-6 rounded-2xl glass-elevated border border-border space-y-4 shadow-subtle hidden lg:block">
+              <div className="flex justify-between">
+                <Skeleton className="w-12 h-12" rounded="2xl" />
+                <Skeleton className="h-6 w-20" rounded="lg" />
+              </div>
+              <Skeleton className="h-6 w-36" rounded="lg" />
+              <Skeleton className="h-3.5 w-full" rounded="md" />
+              <Skeleton className="h-10 w-full" rounded="xl" />
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -84,22 +135,22 @@ export const CatalogPage: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-md mx-auto py-16 px-4 text-center space-y-4">
-        <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto shadow-sm">
-          <AlertCircle className="w-7 h-7" />
+        <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto">
+          <AlertCircle className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-extrabold text-text">Materia nu a fost găsită</h2>
-        <p className="text-xs sm:text-sm text-text-muted">{error}</p>
+        <h2 className="font-display text-lg font-bold text-text">Materia nu a fost găsită</h2>
+        <p className="text-xs text-text-muted">{error}</p>
         <div className="flex items-center justify-center gap-3 pt-2">
           <button
             onClick={loadData}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-semibold hover:bg-surface-elevated transition-colors min-h-[44px]"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface border border-border text-xs font-semibold hover:bg-surface-elevated transition-colors min-h-[38px]"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
             <span>Reîncearcă</span>
           </button>
           <Link
             to="/catalog"
-            className="px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-bold hover:bg-cyan-400 transition-colors shadow-glow min-h-[44px] inline-flex items-center"
+            className="px-4 py-2 rounded-lg bg-cyan-500 text-black text-xs font-bold hover:bg-cyan-400 transition-colors shadow-subtle min-h-[38px] inline-flex items-center"
           >
             Înapoi la Catalog
           </Link>
@@ -109,18 +160,18 @@ export const CatalogPage: React.FC = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 pb-16 px-2 sm:px-4 animate-fadeIn">
+    <div className="max-w-5xl mx-auto space-y-6 pb-16 px-2 sm:px-4 animate-fadeIn">
       {/* LEVEL 2: Subject View (/catalog/:subject) -> Single page with Expandable Chapter Cards */}
       {subjectSlug && subjectDetail ? (
-        <div className="space-y-6">
+        <div className="space-y-5">
           <CatalogBreadcrumbs subjectName={subjectDetail.subject.name} />
 
-          <header className="rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-surface to-surface p-6 sm:p-8 shadow-xl space-y-3 relative overflow-hidden">
-            <div className="flex items-center gap-2 text-xs font-bold text-cyan-400">
-              <BookOpen className="w-4 h-4" />
-              <span>Materie Bacalaureat</span>
+          <header className="rounded-xl glass-elevated p-5 sm:p-6 space-y-1.5 relative">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Programa Oficială</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-text tracking-tight">
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-text tracking-tight">
               {subjectDetail.subject.name}
             </h1>
             {subjectDetail.subject.description || subjectDetail.subject.short_description ? (
@@ -132,34 +183,34 @@ export const CatalogPage: React.FC = () => {
 
           {/* Search filter within subject */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-text-subtle pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Caută o operă, autor sau titlu de eseu..."
-              className="w-full pl-10 pr-4 py-3 rounded-2xl bg-surface/90 border border-border text-xs sm:text-sm text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/50 transition-all min-h-[44px]"
+              className="w-full pl-9 pr-4 py-2 rounded-lg glass-default text-xs sm:text-sm text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400/40 transition-all min-h-[40px]"
             />
           </div>
 
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
-              <h2 className="text-lg sm:text-xl font-bold text-text flex items-center gap-2">
-                <FolderKanban className="w-5 h-5 text-cyan-400" />
+              <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
+                <FolderKanban className="w-4 h-4 text-cyan-400" />
                 <span>Opere și Capitole ({filteredChapters.length})</span>
               </h2>
             </div>
 
             {filteredChapters.length === 0 ? (
-              <div className="py-12 text-center border border-dashed border-border rounded-3xl bg-surface/40 p-6 text-text-muted space-y-2">
-                <p className="text-base font-medium">
+              <div className="py-8 text-center border border-dashed border-border rounded-xl glass-subtle p-4 text-text-muted space-y-1.5">
+                <p className="text-xs sm:text-sm font-medium">
                   {searchQuery
                     ? `Niciun rezultat găsit pentru „${searchQuery}”.`
                     : 'Nu există capitole publicate pentru această materie încă.'}
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-2.5">
                 {filteredChapters.map((chapter) => (
                   <ChapterLessonsCard
                     key={chapter.id}
@@ -174,28 +225,28 @@ export const CatalogPage: React.FC = () => {
         </div>
       ) : (
         /* LEVEL 1: Catalog Root (/catalog) -> List all Subjects */
-        <div className="space-y-6">
-          <header className="rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-cyan-950/40 via-surface to-surface p-6 sm:p-8 shadow-xl space-y-2">
-            <h1 className="text-2xl sm:text-3xl font-black text-text tracking-tight">
+        <div className="space-y-5">
+          <header className="rounded-xl glass-elevated p-5 sm:p-6 space-y-1">
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-text tracking-tight">
               Catalog Materii Bacalaureat
             </h1>
             <p className="text-xs sm:text-sm text-text-muted leading-relaxed max-w-2xl">
-              Explorează structura oficială a materiilor de examen. Selectează o materie pentru a studia eseurile și sintezele aferente.
+              Structura oficială a materiilor de examen. Alege o materie pentru a accesa eseurile și sintezele aferente.
             </p>
           </header>
 
-          <section className="space-y-4">
-            <h2 className="text-lg font-bold text-text flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-cyan-400" />
-              <span>Materiile Disponibile ({subjectsList.length})</span>
+          <section className="space-y-3.5">
+            <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <span>Materii Disponibile ({subjectsList.length})</span>
             </h2>
 
             {subjectsList.length === 0 ? (
-              <div className="py-12 text-center border border-dashed border-border rounded-3xl bg-surface/40 p-6 text-text-muted space-y-2">
-                <p className="text-base font-medium">Nu există materii publicate în catalog încă.</p>
+              <div className="py-8 text-center border border-dashed border-border rounded-xl bg-surface/30 p-4 text-text-muted space-y-1">
+                <p className="text-xs sm:text-sm font-medium">Nu există materii publicate în catalog încă.</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {subjectsList.map((subj) => (
                   <SubjectCard key={subj.id} subject={subj} />
                 ))}
