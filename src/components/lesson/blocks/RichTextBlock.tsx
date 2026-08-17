@@ -19,15 +19,17 @@ export const RichTextBlock: React.FC<Props> = ({ content }) => {
   if (sanitizedContent) {
     return (
       <div
-        className="prose prose-invert max-w-prose text-text/90 leading-relaxed space-y-3.5 text-sm sm:text-base [&_p]:mb-3 [&_strong]:font-semibold [&_strong]:text-text [&_em]:italic [&_em]:text-cyan-300 [&_u]:underline [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_blockquote]:border-l-2 [&_blockquote]:border-cyan-400/60 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-text-muted"
+        className="max-w-prose text-text/90 font-literary-serif leading-relaxed space-y-3.5 text-base sm:text-lg [&_p]:mb-3.5 [&_strong]:font-bold [&_strong]:text-text [&_em]:italic [&_em]:text-inherit [&_u]:underline [&_u]:underline-offset-2 [&_s]:line-through [&_s]:text-text-muted [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1.5 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1.5 [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-amber-500/5 dark:[&_blockquote]:bg-surface-elevated/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-2xl [&_blockquote]:italic [&_blockquote]:text-text-muted [&_blockquote]:shadow-subtle [&_a]:text-amber-700 dark:[&_a]:text-amber-400 [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-amber-600 dark:hover:[&_a]:text-amber-300 [&_a]:font-semibold"
         dangerouslySetInnerHTML={{ __html: sanitizedContent }}
       />
     )
   }
 
   return (
-    <div className="max-w-prose text-text/90 leading-relaxed whitespace-pre-line text-sm sm:text-base">
+    <div className="max-w-prose text-text/90 font-literary-serif leading-relaxed whitespace-pre-line text-base sm:text-lg">
       {text || ''}
     </div>
   )
 }
+
+export default RichTextBlock

@@ -19,7 +19,7 @@ export const ProStatusCard: React.FC<ProStatusCardProps> = ({ subscription }) =>
           <div>
             <div className="flex items-center gap-1.5">
               <h4 className="text-xs font-bold text-text">Abonament PRO Activ</h4>
-              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-800 dark:text-amber-300 uppercase tracking-wider">
                 Nelimitat
               </span>
             </div>
@@ -39,13 +39,13 @@ export const ProStatusCard: React.FC<ProStatusCardProps> = ({ subscription }) =>
       innerClassName="glass-featured-pro p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
     >
       <div className="flex items-start gap-2.5 max-w-xl">
-        <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 flex items-center justify-center shrink-0 mt-0.5">
+        <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25 flex items-center justify-center shrink-0 mt-0.5">
           <Sparkles className="w-3.5 h-3.5" />
         </div>
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <h4 className="font-display text-xs sm:text-sm font-bold text-text">Deblochează accesul complet PRO</h4>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25 uppercase tracking-wider">
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25 uppercase tracking-wider">
               Recomandat
             </span>
           </div>

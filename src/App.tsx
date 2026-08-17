@@ -67,6 +67,10 @@ export const App: React.FC = () => {
               <Route element={<AdminLayout />}>
                 <Route path="/admin" element={<AdminDashboardPage />} />
                 <Route path="/admin/content" element={<AdminContentPage />} />
+                <Route path="/admin/content/:subjectSlug" element={<AdminContentPage />} />
+                <Route path="/admin/content/:subjectSlug/:chapterSlug" element={<AdminContentPage />} />
+                <Route path="/admin/content/:subjectSlug/:chapterSlug/:lessonSlug" element={<AdminContentPage />} />
+                <Route path="/admin/editor/:lessonId" element={<AdminContentPage />} />
                 <Route path="/admin/media" element={<AdminMediaPage />} />
                 <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
                 <Route path="/admin/users" element={<AdminUsersPage />} />

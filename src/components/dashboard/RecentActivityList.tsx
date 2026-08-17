@@ -26,27 +26,27 @@ function getActivityConfig(activityType: string) {
       }
     case 'quiz_completed':
       return {
-        icon: <Award className="w-3.5 h-3.5 text-amber-400" />,
-        badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+        icon: <Award className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />,
+        badgeBg: 'bg-amber-500/10 border-amber-500/20 text-amber-800 dark:text-amber-400',
         label: 'Quiz parcurs',
       }
     case 'lesson_started':
       return {
-        icon: <PlayCircle className="w-3.5 h-3.5 text-cyan-400" />,
-        badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+        icon: <PlayCircle className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />,
+        badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-800 dark:text-cyan-400',
         label: 'Lecție începută',
       }
     case 'lesson_progress':
       return {
-        icon: <ActivityIcon className="w-3.5 h-3.5 text-cyan-400" />,
-        badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400',
+        icon: <ActivityIcon className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />,
+        badgeBg: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-800 dark:text-cyan-400',
         label: 'Progres salvat',
       }
     case 'hidden_answer_revealed':
     case 'self_assessment':
       return {
-        icon: <Brain className="w-3.5 h-3.5 text-purple-400" />,
-        badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-400',
+        icon: <Brain className="w-3.5 h-3.5 text-purple-700 dark:text-purple-400" />,
+        badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-800 dark:text-purple-400',
         label: 'Autoevaluare',
       }
     default:

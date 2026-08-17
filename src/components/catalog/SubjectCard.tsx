@@ -61,11 +61,11 @@ export const SubjectCard: React.FC<Props> = ({ subject }) => {
       </div>
 
       <div className="flex items-center text-xs font-bold gap-1 pt-4 mt-4 border-t border-border-subtle relative z-10">
-        <span className={isHistory ? 'text-amber-400 group-hover:text-amber-300' : 'text-cyan-400 group-hover:text-cyan-300'}>
+        <span className={isHistory ? 'text-amber-700 dark:text-amber-400 group-hover:text-amber-800 dark:group-hover:text-amber-300' : 'text-cyan-700 dark:text-cyan-400 group-hover:text-cyan-800 dark:group-hover:text-cyan-300'}>
           Deschide programa completă
         </span>
         <ChevronRight className={`w-4 h-4 transition-transform duration-200 group-hover:translate-x-1 ${
-          isHistory ? 'text-amber-400' : 'text-cyan-400'
+          isHistory ? 'text-amber-600 dark:text-amber-400' : 'text-cyan-600 dark:text-cyan-400'
         }`} />
       </div>
     </Link>

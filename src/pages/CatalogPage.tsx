@@ -167,7 +167,7 @@ export const CatalogPage: React.FC = () => {
           <CatalogBreadcrumbs subjectName={subjectDetail.subject.name} />
 
           <header className="rounded-xl glass-elevated p-5 sm:p-6 space-y-1.5 relative">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-400">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-700 dark:text-cyan-400">
               <BookOpen className="w-3.5 h-3.5" />
               <span>Programa Oficială</span>
             </div>
@@ -183,7 +183,7 @@ export const CatalogPage: React.FC = () => {
 
           {/* Search filter within subject */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-700 dark:text-cyan-400 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
@@ -196,7 +196,7 @@ export const CatalogPage: React.FC = () => {
           <section className="space-y-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-2">
               <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
-                <FolderKanban className="w-4 h-4 text-cyan-400" />
+                <FolderKanban className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
                 <span>Opere și Capitole ({filteredChapters.length})</span>
               </h2>
             </div>
@@ -237,7 +237,7 @@ export const CatalogPage: React.FC = () => {
 
           <section className="space-y-3.5">
             <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <BookOpen className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
               <span>Materii Disponibile ({subjectsList.length})</span>
             </h2>
 

@@ -379,10 +379,17 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="pt-2 px-3 pb-1 border-t border-border-subtle flex items-center justify-between text-[10px] text-text-subtle">
+        <div className="pt-2 px-4 pb-2 border-t border-border-subtle flex items-center justify-between text-[11px] text-text-subtle">
           <div className="flex items-center gap-3">
-            <span>↑↓ pentru navigare</span>
-            <span>↵ pentru selectare</span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-mono text-text">↑</kbd>
+              <kbd className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-mono text-text">↓</kbd>
+              <span>pentru navigare</span>
+            </span>
+            <span className="flex items-center gap-1">
+              <kbd className="px-1.5 py-0.5 rounded bg-surface border border-border text-[10px] font-mono text-text">↵</kbd>
+              <span>pentru selectare</span>
+            </span>
           </div>
           <span>PlatformaBac Search</span>
         </div>

@@ -1,6 +1,7 @@
 /**
  * Native DOMParser-based HTML Sanitizer for safe rendering of rich_text blocks.
  * Enforces tag whitelist, attribute whitelist, URL scheme validation, and safe rel="noopener noreferrer" links.
+ * Preserves semantic data-color attributes on <mark> tags and ensures clean class names for high-contrast highlighting.
  */
 export function sanitizeHtml(rawHtml: string): string {
   if (!rawHtml || typeof rawHtml !== 'string') return ''
@@ -43,6 +44,7 @@ export function sanitizeHtml(rawHtml: string): string {
     'div',
     'a',
     'img',
+    'mark',
   ])
 
   const ALLOWED_ATTRS = new Set([
@@ -54,6 +56,8 @@ export function sanitizeHtml(rawHtml: string): string {
     'rel',
     'class',
     'id',
+    'data-color',
+    'data-highlight',
   ])
 
   const ALLOWED_SCHEMES = ['https:', 'http:', 'mailto:']
@@ -96,6 +100,46 @@ export function sanitizeHtml(rawHtml: string): string {
     }
   }
 
+  function normalizeMarkElement(el: HTMLElement) {
+    let color = el.getAttribute('data-color') || el.getAttribute('data-highlight')
+
+    // If no data-color, detect from classes or style attributes
+    if (!color) {
+      const cls = (el.getAttribute('class') || '').toLowerCase()
+      const style = (el.getAttribute('style') || '').toLowerCase()
+
+      if (cls.includes('yellow') || style.includes('yellow') || style.includes('#fef') || style.includes('#eab308') || style.includes('#ca8a04') || style.includes('rgb(234, 179, 8)')) {
+        color = 'yellow'
+      } else if (cls.includes('amber') || style.includes('amber') || style.includes('#ffedd5') || style.includes('#f59e0b') || style.includes('#ea580c') || style.includes('rgb(245, 158, 11)')) {
+        color = 'amber'
+      } else if (cls.includes('cyan') || style.includes('cyan') || style.includes('#cffafe') || style.includes('#06b6d4') || style.includes('#0891b2') || style.includes('rgb(6, 182, 212)')) {
+        color = 'cyan'
+      } else if (cls.includes('rose') || cls.includes('red') || style.includes('rose') || style.includes('red') || style.includes('#ffe4e6') || style.includes('#f43f5e') || style.includes('#e11d48') || style.includes('rgb(244, 63, 94)')) {
+        color = 'rose'
+      } else if (cls.includes('emerald') || cls.includes('green') || style.includes('emerald') || style.includes('green') || style.includes('#d1fae5') || style.includes('#10b981') || style.includes('#059669') || style.includes('rgb(16, 185, 129)')) {
+        color = 'emerald'
+      }
+    }
+
+    // Normalize canonical color value
+    let canonicalColor = 'yellow'
+    if (color) {
+      const normalized = color.toLowerCase().trim()
+      if (normalized === 'cyan') canonicalColor = 'cyan'
+      else if (normalized === 'amber') canonicalColor = 'amber'
+      else if (normalized === 'yellow') canonicalColor = 'yellow'
+      else if (normalized === 'rose' || normalized === 'red') canonicalColor = 'rose'
+      else if (normalized === 'emerald' || normalized === 'green') canonicalColor = 'emerald'
+    }
+
+    // Set standard data attribute and class
+    el.setAttribute('data-color', canonicalColor)
+    el.setAttribute('class', `bac-highlight highlight-${canonicalColor}`)
+
+    // Clean up inline styles so CSS tokens strictly govern the design
+    el.removeAttribute('style')
+  }
+
   function cleanNode(node: Node) {
     const children = Array.from(node.childNodes)
     for (const child of children) {
@@ -110,6 +154,11 @@ export function sanitizeHtml(rawHtml: string): string {
             el.parentNode.replaceChild(textNode, el)
           }
           continue
+        }
+
+        // Special handling for <mark> highlights
+        if (tagName === 'mark') {
+          normalizeMarkElement(el)
         }
 
         // Clean attributes

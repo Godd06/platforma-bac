@@ -19,7 +19,7 @@ import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 export const PublicLayout: React.FC = () => {
-  const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth()
+  const { user, isAuthenticated, loading, signOut } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
@@ -88,7 +88,7 @@ export const PublicLayout: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-extrabold text-xl tracking-tight text-text leading-tight">
-                Platforma<span className="text-cyan-400">Bac</span>
+                Platforma<span className="text-cyan-600 dark:text-cyan-400">Bac</span>
               </span>
               <span className="text-[10px] text-text-subtle font-semibold -mt-0.5 tracking-wider uppercase">
                 Spațiu Digital de Studiu
@@ -104,12 +104,12 @@ export const PublicLayout: React.FC = () => {
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                     isActive
-                      ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                      ? 'bg-surface text-cyan-700 dark:text-cyan-400 border border-border shadow-subtle font-bold'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                   }`
                 }
               >
-                <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+                <LayoutDashboard className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
                 <span>Panou Studiu</span>
               </NavLink>
             )}
@@ -119,12 +119,12 @@ export const PublicLayout: React.FC = () => {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    ? 'bg-surface text-cyan-700 dark:text-cyan-400 border border-border shadow-subtle font-bold'
                     : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                 }`
               }
             >
-              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <BookOpen className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
               <span>Catalog Materii</span>
             </NavLink>
 
@@ -133,12 +133,12 @@ export const PublicLayout: React.FC = () => {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shadow-subtle'
-                    : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 font-bold shadow-subtle'
+                    : 'text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10'
                 }`
               }
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>Abonament PRO</span>
             </NavLink>
           </nav>
@@ -150,15 +150,14 @@ export const PublicLayout: React.FC = () => {
               <Skeleton className="h-10 w-28" rounded="xl" />
             ) : isAuthenticated ? (
               <div className="flex items-center gap-2.5">
-                {isAdmin && (
-                  <Link
-                    to="/admin"
-                    className="p-2.5 rounded-xl text-amber-400 hover:bg-amber-500/15 border border-amber-500/30 transition-colors"
-                    title="Panou Administrare"
-                  >
-                    <ShieldCheck className="w-4 h-4" />
-                  </Link>
-                )}
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
+                  title="Panou Administrare AdminCMS"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span>AdminCMS</span>
+                </Link>
 
                 <Link
                   to="/settings"
@@ -190,6 +189,15 @@ export const PublicLayout: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
+                <Link
+                  to="/admin"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[40px]"
+                  title="Panou Administrare AdminCMS"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                  <span>AdminCMS</span>
+                </Link>
+
                 <Link
                   to="/login"
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-text-muted hover:text-text hover:bg-surface-elevated border border-transparent hover:border-border transition-all min-h-[40px]"
@@ -313,6 +321,21 @@ export const PublicLayout: React.FC = () => {
                 >
                   <Sparkles className="w-5 h-5 text-amber-400" />
                   <span>Abonament PRO</span>
+                </NavLink>
+
+                <NavLink
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
+                      isActive
+                        ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
+                        : 'text-amber-400 hover:bg-surface-elevated/60'
+                    }`
+                  }
+                >
+                  <ShieldCheck className="w-5 h-5 text-amber-400" />
+                  <span>Panou AdminCMS</span>
                 </NavLink>
 
                 {isAuthenticated && (

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
+  ArrowRight,
   Clock,
   Lock,
   ChevronLeft,
@@ -47,36 +48,43 @@ export const LessonPage: React.FC = () => {
   const loadLesson = useCallback(async () => {
     if (!lessonId) return
     setLoading(true)
-    const res = await fetchLessonWithBlocks(lessonId)
-    setData(res)
+    setCompletedSuccess(false)
 
-    if (res.accessState === 'ACCESSIBLE') {
-      const userProgress = await getLessonProgress(lessonId)
-      setProgress(userProgress)
+    try {
+      // 1. Fetch lesson, blocks & discovery metadata
+      const result = await fetchLessonWithBlocks(lessonId)
+      setData(result)
 
-      // If user has no progress row yet, record initial start
-      if (!userProgress) {
-        const initialProgress = await recordLessonProgress(lessonId, 15)
-        if (initialProgress) {
-          setProgress(initialProgress)
+      // 2. Fetch or initialize progress if accessible
+      if (result.accessState === 'ACCESSIBLE') {
+        const prog = await getLessonProgress(lessonId)
+        setProgress(prog)
+
+        // Record lesson start if not yet started
+        if (!prog) {
+          await recordLessonProgress(lessonId, 10)
         }
       }
+    } catch (err) {
+      console.error('[LessonPage] Unexpected fetch error:', err)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }, [lessonId])
 
   useEffect(() => {
     loadLesson()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [loadLesson])
 
+  // Handle Mark Completed action
   const handleMarkCompleted = async () => {
     if (!lessonId || completing) return
     setCompleting(true)
 
     try {
       const result = await markLessonCompleted(lessonId)
-      if (result) {
+      if (result?.progress) {
         setProgress(result.progress)
         setCompletedSuccess(true)
       }
@@ -97,6 +105,12 @@ export const LessonPage: React.FC = () => {
           <Skeleton className="h-4 w-48" rounded="md" />
         </div>
 
+        {/* Top Nav skeleton */}
+        <div className="flex items-center justify-between py-1">
+          <Skeleton className="h-10 w-36" rounded="xl" />
+          <Skeleton className="h-10 w-36" rounded="xl" />
+        </div>
+
         {/* Lesson Header Skeleton */}
         <div className="p-6 sm:p-7 rounded-2xl glass-elevated border border-border space-y-3.5 shadow-subtle">
           <div className="flex items-center gap-2">
@@ -106,18 +120,6 @@ export const LessonPage: React.FC = () => {
           </div>
           <Skeleton className="h-9 w-4/5" rounded="xl" />
           <Skeleton className="h-4 w-full" rounded="md" />
-        </div>
-
-        {/* Audio Bar Skeleton */}
-        <div className="p-4 rounded-2xl glass-elevated border border-border flex items-center justify-between gap-3 shadow-subtle">
-          <div className="flex items-center gap-3">
-            <Skeleton className="w-10 h-10" rounded="xl" />
-            <div className="space-y-1.5">
-              <Skeleton className="h-3.5 w-36" rounded="md" />
-              <Skeleton className="h-4 w-48" rounded="md" />
-            </div>
-          </div>
-          <Skeleton className="h-8 w-28" rounded="xl" />
         </div>
 
         {/* Content Blocks Skeletons */}
@@ -133,18 +135,6 @@ export const LessonPage: React.FC = () => {
             <Skeleton className="h-5 w-36" rounded="md" />
             <Skeleton className="h-4 w-full" rounded="md" />
             <Skeleton className="h-4 w-5/6" rounded="md" />
-          </div>
-        </div>
-
-        {/* Barem checklist skeleton */}
-        <div className="p-6 rounded-2xl glass-elevated border border-border space-y-3 shadow-subtle">
-          <div className="flex justify-between">
-            <Skeleton className="h-5 w-56" rounded="md" />
-            <Skeleton className="h-6 w-24" rounded="xl" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            <Skeleton className="h-20" rounded="xl" />
-            <Skeleton className="h-20" rounded="xl" />
           </div>
         </div>
       </div>
@@ -216,7 +206,7 @@ export const LessonPage: React.FC = () => {
 
   return (
     <div
-      className={`mx-auto space-y-6 pb-20 animate-fadeIn transition-all duration-300 ${
+      className={`mx-auto space-y-6 pb-20 animate-fadeIn transition-all duration-300 lesson-content selectable-content ${
         focusMode ? 'max-w-3xl pt-2' : 'max-w-prose'
       }`}
     >
@@ -261,17 +251,64 @@ export const LessonPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ========================================================================= */}
+      {/* TOP SIBLING LESSON NAVIGATION BAR */}
+      {/* ========================================================================= */}
+      {(prevLesson || nextLesson) && (
+        <nav aria-label="Navigare rapidă între lecții" className="flex items-stretch justify-between gap-3 pt-0.5 pb-1 no-print">
+          {prevLesson ? (
+            <Link
+              to={`/lesson/${prevLesson.id}`}
+              className="group flex-1 max-w-[48%] inline-flex items-center gap-2.5 p-2 sm:px-3.5 sm:py-2.5 rounded-2xl glass-subtle border border-border hover:border-cyan-500/40 hover:bg-surface-elevated transition-all min-h-[44px]"
+              aria-label={`Lecția precedentă: ${prevLesson.title}`}
+            >
+              <ArrowLeft className="w-4 h-4 text-cyan-700 dark:text-cyan-400 shrink-0 group-hover:-translate-x-0.5 transition-transform" />
+              <div className="text-left min-w-0">
+                <span className="text-[10px] sm:text-[11px] font-bold text-text-muted group-hover:text-cyan-800 dark:group-hover:text-cyan-300 block uppercase tracking-wider">
+                  Lecția precedentă
+                </span>
+                <span className="hidden sm:block text-xs font-semibold text-text truncate max-w-[180px] lg:max-w-[240px]">
+                  {prevLesson.title}
+                </span>
+              </div>
+            </Link>
+          ) : (
+            <div className="flex-1 max-w-[48%]" />
+          )}
+
+          {nextLesson ? (
+            <Link
+              to={`/lesson/${nextLesson.id}`}
+              className="group flex-1 max-w-[48%] ml-auto inline-flex items-center justify-end gap-2.5 p-2 sm:px-3.5 sm:py-2.5 rounded-2xl glass-subtle border border-border hover:border-cyan-500/40 hover:bg-surface-elevated transition-all min-h-[44px] text-right"
+              aria-label={`Lecția următoare: ${nextLesson.title}`}
+            >
+              <div className="text-right min-w-0">
+                <span className="text-[10px] sm:text-[11px] font-bold text-text-muted group-hover:text-cyan-800 dark:group-hover:text-cyan-300 block uppercase tracking-wider">
+                  Lecția următoare
+                </span>
+                <span className="hidden sm:block text-xs font-semibold text-text truncate max-w-[180px] lg:max-w-[240px]">
+                  {nextLesson.title}
+                </span>
+              </div>
+              <ArrowRight className="w-4 h-4 text-cyan-700 dark:text-cyan-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          ) : (
+            <div className="flex-1 max-w-[48%]" />
+          )}
+        </nav>
+      )}
+
       {/* Digital Textbook Lesson Header */}
       <header className="rounded-2xl glass-elevated border border-border p-6 sm:p-7 space-y-3 shadow-subtle">
         <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">
-            <BookOpen className="w-3.5 h-3.5" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/20 font-semibold">
+            <BookOpen className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />
             <span>{subject?.name || 'Materia Bac'}</span>
           </span>
 
           {lesson.estimated_minutes && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] glass-subtle text-text-muted border border-border-subtle">
-              <Clock className="w-3.5 h-3.5 text-cyan-400" />
+              <Clock className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />
               <span>{lesson.estimated_minutes} min lectură</span>
             </span>
           )}
@@ -279,11 +316,11 @@ export const LessonPage: React.FC = () => {
           <span
             className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[10px] font-bold ${
               lesson.access_level === 'pro'
-                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
-                : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30'
+                : 'bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/20'
             }`}
           >
-            {lesson.access_level === 'pro' && <Lock className="w-2.5 h-2.5" />}
+            {lesson.access_level === 'pro' && <Lock className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />}
             <span>{lesson.access_level === 'pro' ? 'PRO' : 'GRATUIT'}</span>
           </span>
 
@@ -300,63 +337,67 @@ export const LessonPage: React.FC = () => {
         </h1>
 
         {lesson.short_description && (
-          <p className="text-xs sm:text-sm text-text-muted leading-relaxed">
+          <p className="text-sm text-text-muted font-literary-serif leading-relaxed">
             {lesson.short_description}
           </p>
         )}
       </header>
 
-      {/* Audio Synthesis Bar with Speed Selector */}
-      {!isProRequired && (
+      {/* Audio Synthesis Bar (Only when accessible) */}
+      {!isProRequired && blocks.length > 0 && (
         <LessonAudioBar
           title={lesson.title}
+          audioUrl={
+            ((lesson as unknown as Record<string, unknown>).audio_url as string | undefined) ||
+            (((lesson as unknown as Record<string, unknown>).metadata as Record<string, unknown>)?.audio_url as string | undefined)
+          }
           durationMinutes={lesson.estimated_minutes}
         />
       )}
 
-      {/* Central Reading Column (Calm Matte Canvas) */}
-      <div className="space-y-4">
-        {isProRequired ? (
-          <ProGateBanner lessonTitle={lesson.title} />
-        ) : blocks.length === 0 ? (
-          <div className="py-8 text-center border border-dashed border-border rounded-2xl glass-subtle p-4 text-text-muted space-y-1">
-            <p className="text-xs sm:text-sm font-medium">Această lecție nu conține blocuri de conținut încă.</p>
-          </div>
-        ) : (
-          blocks.map((block) => (
-            <LessonBlockRenderer key={block.id} block={block} />
-          ))
-        )}
-      </div>
-
-      {/* Interactive Self-Assessment on Official Barem (10p) */}
-      {!isProRequired && blocks.length > 0 && (
-        <LessonBaremChecklist
-          lessonId={lesson.id}
-          isHistory={Boolean(isHistorySubject)}
-        />
-      )}
-
-      {/* Personal Study Notebook & Quotes */}
-      {!isProRequired && blocks.length > 0 && (
-        <LessonStudyNotes
-          lessonId={lesson.id}
+      {/* Content Rendering or Pro Gate */}
+      {isProRequired ? (
+        <ProGateBanner
           lessonTitle={lesson.title}
         />
+      ) : (
+        <main className="space-y-4">
+          {blocks.length === 0 ? (
+            <div className="p-8 rounded-2xl glass-subtle border border-border text-center text-text-muted text-xs italic">
+              Conținutul acestei lecții este în curs de redactare editorială.
+            </div>
+          ) : (
+            blocks.map((block) => <LessonBlockRenderer key={block.id} block={block} />)
+          )}
+        </main>
       )}
 
-      {/* Interactive Lesson Completion Section */}
-      {!isProRequired && blocks.length > 0 && (
-        <section className="p-6 rounded-2xl glass-elevated border border-border space-y-3 no-print shadow-subtle">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Interactive Barem Checklist & Study Notes (Only when accessible) */}
+      {!isProRequired && (
+        <>
+          <LessonBaremChecklist
+            lessonId={lesson.id}
+            isHistory={isHistorySubject}
+          />
+          <LessonStudyNotes
+            lessonId={lesson.id}
+            lessonTitle={lesson.title}
+          />
+        </>
+      )}
+
+      {/* Mark Completed Section */}
+      {!isProRequired && (
+        <section
+          aria-label="Finalizare lecție"
+          className="p-6 rounded-2xl glass-elevated border border-border space-y-4 shadow-subtle no-print"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">
-                EVALUARE & ASIMILARE
-              </span>
-              <h3 className="font-display text-sm sm:text-base font-bold text-text">
-                {isCompleted ? 'Lecție finalizată cu succes' : 'Ai asimilat ideile acestei lecții?'}
-              </h3>
-              <p className="text-xs text-text-muted">
+              <h2 className="font-display text-base font-bold text-text">
+                {isCompleted ? 'Lecție parcursă cu succes' : 'Ai asimilat această lecție?'}
+              </h2>
+              <p className="text-xs text-text-muted leading-relaxed max-w-md">
                 {isCompleted
                   ? 'Progresul tău a fost înregistrat și ritmul săptămânal a fost actualizat.'
                   : 'Marchează lecția pentru a actualiza progresul general și ritmul de învățare.'}
@@ -390,15 +431,16 @@ export const LessonPage: React.FC = () => {
         </section>
       )}
 
-      {/* Footer Navigation Bar */}
+      {/* Bottom Footer Navigation Bar */}
       <footer className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
         {prevLesson ? (
           <Link
             to={`/lesson/${prevLesson.id}`}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-semibold text-text hover:bg-surface-elevated transition-colors min-h-[42px]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-border text-xs font-semibold text-text hover:bg-surface-elevated transition-colors min-h-[44px]"
+            aria-label={`Lecția precedentă: ${prevLesson.title}`}
           >
             <ChevronLeft className="w-4 h-4 text-cyan-400" />
-            <span className="truncate max-w-[160px]">Anterioara: {prevLesson.title}</span>
+            <span className="truncate max-w-[180px]">Lecția precedentă</span>
           </Link>
         ) : (
           <div className="hidden sm:block" />
@@ -406,7 +448,7 @@ export const LessonPage: React.FC = () => {
 
         <Link
           to="/catalog"
-          className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-surface border border-border text-xs font-semibold text-text hover:bg-surface-elevated transition-colors min-h-[42px]"
+          className="w-full sm:w-auto inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-surface border border-border text-xs font-semibold text-text hover:bg-surface-elevated transition-colors min-h-[44px]"
         >
           <span>Catalog Materii</span>
         </Link>
@@ -414,9 +456,10 @@ export const LessonPage: React.FC = () => {
         {nextLesson ? (
           <Link
             to={`/lesson/${nextLesson.id}`}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-bold hover:bg-cyan-400 transition-colors shadow-subtle min-h-[42px]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 text-black text-xs font-bold hover:bg-cyan-400 transition-colors shadow-subtle min-h-[44px]"
+            aria-label={`Lecția următoare: ${nextLesson.title}`}
           >
-            <span className="truncate max-w-[160px]">Următoarea: {nextLesson.title}</span>
+            <span className="truncate max-w-[180px]">Lecția următoare</span>
             <ChevronRight className="w-4 h-4" />
           </Link>
         ) : (

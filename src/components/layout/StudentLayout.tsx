@@ -17,7 +17,7 @@ import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import { CommandPalette } from '@/components/ui/CommandPalette'
 
 export const StudentLayout: React.FC = () => {
-  const { user, signOut, isPro, isAdmin } = useAuth()
+  const { user, signOut, isPro } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
@@ -91,7 +91,7 @@ export const StudentLayout: React.FC = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-display font-extrabold text-xl tracking-tight text-text leading-tight">
-                Platforma<span className="text-cyan-400">Bac</span>
+                Platforma<span className="text-cyan-600 dark:text-cyan-400">Bac</span>
               </span>
               <span className="text-[10px] text-text-subtle font-semibold -mt-0.5 tracking-wider uppercase">
                 Spațiu Digital de Studiu
@@ -106,12 +106,12 @@ export const StudentLayout: React.FC = () => {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    ? 'bg-surface text-cyan-700 dark:text-cyan-400 border border-border shadow-subtle font-bold'
                     : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                 }`
               }
             >
-              <LayoutDashboard className="w-4 h-4 text-cyan-400" />
+              <LayoutDashboard className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
               <span>Panou Studiu</span>
             </NavLink>
 
@@ -120,12 +120,12 @@ export const StudentLayout: React.FC = () => {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-surface text-cyan-400 border border-border shadow-subtle font-bold'
+                    ? 'bg-surface text-cyan-700 dark:text-cyan-400 border border-border shadow-subtle font-bold'
                     : 'text-text-muted hover:text-text hover:bg-surface-elevated/60'
                 }`
               }
             >
-              <BookOpen className="w-4 h-4 text-cyan-400" />
+              <BookOpen className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
               <span>Catalog Materii</span>
             </NavLink>
 
@@ -134,12 +134,12 @@ export const StudentLayout: React.FC = () => {
               className={({ isActive }) =>
                 `px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 ${
                   isActive
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold shadow-subtle'
-                    : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
+                    ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 font-bold shadow-subtle'
+                    : 'text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-amber-500/10'
                 }`
               }
             >
-              <Sparkles className="w-4 h-4 text-amber-400" />
+              <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>Abonament PRO</span>
             </NavLink>
           </nav>
@@ -150,21 +150,20 @@ export const StudentLayout: React.FC = () => {
             <ThemeToggle />
 
             {isPro && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-subtle">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 shadow-subtle">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>PRO</span>
               </span>
             )}
 
-            {isAdmin && (
-              <Link
-                to="/admin"
-                className="p-2.5 rounded-xl text-amber-400 hover:bg-amber-500/15 border border-amber-500/30 transition-colors"
-                title="Panou Administrare"
-              >
-                <ShieldCheck className="w-4 h-4" />
-              </Link>
-            )}
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
+              title="Panou Administrare AdminCMS"
+            >
+              <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>AdminCMS</span>
+            </Link>
 
             <Link
               to="/settings"
@@ -306,16 +305,20 @@ export const StudentLayout: React.FC = () => {
                   <span>Setări Cont</span>
                 </NavLink>
 
-                {isAdmin && (
-                  <NavLink
-                    to="/admin"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 min-h-[52px]"
-                  >
-                    <ShieldCheck className="w-5 h-5 text-amber-400" />
-                    <span>Panou Administrare</span>
-                  </NavLink>
-                )}
+                <NavLink
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
+                      isActive
+                        ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
+                        : 'text-amber-400 hover:bg-surface-elevated/60'
+                    }`
+                  }
+                >
+                  <ShieldCheck className="w-5 h-5 text-amber-400" />
+                  <span>Panou AdminCMS</span>
+                </NavLink>
               </nav>
             </div>
 

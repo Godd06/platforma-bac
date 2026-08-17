@@ -109,6 +109,15 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  html,
+  body,
+  #root {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
   body {
     background-color: var(--background);
     color: var(--text);
@@ -120,6 +129,56 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  }
+
+  /* Educational Lesson Content & Form Inputs: The ONLY places on the platform where text selection is enabled */
+  .lesson-content,
+  .lesson-content *,
+  .lesson-reading-view,
+  .lesson-reading-view *,
+  .selectable-content,
+  .selectable-content *,
+  .lesson-block-renderer,
+  .lesson-block-renderer *,
+  article.lesson-body,
+  article.lesson-body *,
+  mark.bac-highlight,
+  mark.bac-highlight *,
+  .ProseMirror,
+  .ProseMirror *,
+  [data-selectable="true"],
+  [data-selectable="true"] *,
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+  }
+
+  /* Explicitly ensure all buttons, navigation bars, badges, icons, and action pills remain non-selectable */
+  button,
+  button *,
+  [role="button"],
+  [role="button"] *,
+  [type="button"],
+  [type="submit"],
+  [type="reset"],
+  nav,
+  nav *,
+  header,
+  .badge,
+  .pill,
+  .tab-item,
+  .nav-link,
+  .drag-handle,
+  .select-none-ui,
+  svg {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
   }
 
   /* Custom subtle scrollbar */
@@ -1065,3 +1124,191 @@ html.light .skeleton-premium::after,
   animation: skeletonWave 2s infinite ease-in-out !important;
 }
 
+/* ========================================================================= */
+/* TIPTAP WYSIWYG RICH TEXT STYLES & SEMANTIC HIGHLIGHTS */
+/* ========================================================================= */
+/* PEDAGOGICAL HIGHLIGHT & MARK SYSTEM (BAC STUDY HIGHLIGHTERS)               */
+/* ========================================================================= */
+.ProseMirror {
+  outline: none !important;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-subtle, #516274);
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+/* Base Layout Mark Properties */
+mark,
+.ProseMirror mark,
+.bac-highlight {
+  display: inline;
+  font-weight: 600;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+/* Fallback Mark when NO specific color is provided (Dark Mode) */
+mark:not([data-color]):not([class*='highlight-']),
+.ProseMirror mark:not([data-color]):not([class*='highlight-']),
+.bac-highlight:not([data-color]):not([class*='highlight-']) {
+  background-color: rgba(234, 179, 8, 0.25) !important;
+  color: #fef08a !important;
+  border-bottom: 2px solid #eab308 !important;
+}
+
+/* Fallback Mark when NO specific color is provided (Light Mode) */
+.light mark:not([data-color]):not([class*='highlight-']),
+.light .ProseMirror mark:not([data-color]):not([class*='highlight-']),
+.light .bac-highlight:not([data-color]):not([class*='highlight-']) {
+  background-color: #fef9c3 !important;
+  color: #713f12 !important;
+  border-bottom: 2px solid #ca8a04 !important;
+}
+
+/* 1. Yellow / Reține (Dark Mode) */
+mark[data-color='yellow'],
+mark[data-highlight='yellow'],
+.ProseMirror mark[data-color='yellow'],
+.bac-highlight.highlight-yellow,
+.bac-highlight[data-color='yellow'],
+.highlight-yellow {
+  background-color: rgba(234, 179, 8, 0.25) !important;
+  color: #fef08a !important;
+  border-bottom: 2px solid #eab308 !important;
+}
+/* 1. Yellow / Reține (Light Mode) */
+.light mark[data-color='yellow'],
+.light mark[data-highlight='yellow'],
+.light .ProseMirror mark[data-color='yellow'],
+.light .bac-highlight.highlight-yellow,
+.light .bac-highlight[data-color='yellow'],
+.light .highlight-yellow {
+  background-color: #fef9c3 !important;
+  color: #713f12 !important;
+  border-bottom: 2px solid #ca8a04 !important;
+}
+
+/* 2. Amber / Important (Dark Mode) */
+mark[data-color='amber'],
+mark[data-highlight='amber'],
+.ProseMirror mark[data-color='amber'],
+.bac-highlight.highlight-amber,
+.bac-highlight[data-color='amber'],
+.highlight-amber {
+  background-color: rgba(245, 158, 11, 0.25) !important;
+  color: #fed7aa !important;
+  border-bottom: 2px solid #f59e0b !important;
+}
+/* 2. Amber / Important (Light Mode) */
+.light mark[data-color='amber'],
+.light mark[data-highlight='amber'],
+.light .ProseMirror mark[data-color='amber'],
+.light .bac-highlight.highlight-amber,
+.light .bac-highlight[data-color='amber'],
+.light .highlight-amber {
+  background-color: #ffedd5 !important;
+  color: #7c2d12 !important;
+  border-bottom: 2px solid #ea580c !important;
+}
+
+/* 3. Cyan / Definiție (Dark Mode) */
+mark[data-color='cyan'],
+mark[data-highlight='cyan'],
+.ProseMirror mark[data-color='cyan'],
+.bac-highlight.highlight-cyan,
+.bac-highlight[data-color='cyan'],
+.highlight-cyan {
+  background-color: rgba(6, 182, 212, 0.25) !important;
+  color: #a5f3fc !important;
+  border-bottom: 2px solid #06b6d4 !important;
+}
+/* 3. Cyan / Definiție (Light Mode) */
+.light mark[data-color='cyan'],
+.light mark[data-highlight='cyan'],
+.light .ProseMirror mark[data-color='cyan'],
+.light .bac-highlight.highlight-cyan,
+.light .bac-highlight[data-color='cyan'],
+.light .highlight-cyan {
+  background-color: #cffafe !important;
+  color: #155e75 !important;
+  border-bottom: 2px solid #0891b2 !important;
+}
+
+/* 4. Rose / Atenție (Dark Mode) */
+mark[data-color='rose'],
+mark[data-color='red'],
+mark[data-highlight='rose'],
+.ProseMirror mark[data-color='rose'],
+.ProseMirror mark[data-color='red'],
+.bac-highlight.highlight-rose,
+.bac-highlight[data-color='rose'],
+.highlight-rose {
+  background-color: rgba(244, 63, 94, 0.25) !important;
+  color: #fecdd3 !important;
+  border-bottom: 2px solid #f43f5e !important;
+}
+/* 4. Rose / Atenție (Light Mode) */
+.light mark[data-color='rose'],
+.light mark[data-color='red'],
+.light mark[data-highlight='rose'],
+.light .ProseMirror mark[data-color='rose'],
+.light .ProseMirror mark[data-color='red'],
+.light .bac-highlight.highlight-rose,
+.light .bac-highlight[data-color='rose'],
+.light .highlight-rose {
+  background-color: #ffe4e6 !important;
+  color: #881337 !important;
+  border-bottom: 2px solid #e11d48 !important;
+}
+
+/* 5. Emerald / Exemplu (Dark Mode) */
+mark[data-color='emerald'],
+mark[data-color='green'],
+mark[data-highlight='emerald'],
+.ProseMirror mark[data-color='emerald'],
+.ProseMirror mark[data-color='green'],
+.bac-highlight.highlight-emerald,
+.bac-highlight[data-color='emerald'],
+.highlight-emerald {
+  background-color: rgba(16, 185, 129, 0.25) !important;
+  color: #a7f3d0 !important;
+  border-bottom: 2px solid #10b981 !important;
+}
+/* 5. Emerald / Exemplu (Light Mode) */
+.light mark[data-color='emerald'],
+.light mark[data-color='green'],
+.light mark[data-highlight='emerald'],
+.light .ProseMirror mark[data-color='emerald'],
+.light .ProseMirror mark[data-color='green'],
+.light .bac-highlight.highlight-emerald,
+.light .bac-highlight[data-color='emerald'],
+.light .highlight-emerald {
+  background-color: #d1fae5 !important;
+  color: #064e3b !important;
+  border-bottom: 2px solid #059669 !important;
+}
+
+/* Light Mode Overrides for Pale Utility Badges */
+.light .text-yellow-200,
+.light .text-amber-200 {
+  color: #78350f !important;
+}
+
+.light .text-cyan-200 {
+  color: #155e75 !important;
+}
+
+.light .text-rose-200 {
+  color: #881337 !important;
+}
+
+.light .text-emerald-200 {
+  color: #064e3b !important;
+}

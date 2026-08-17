@@ -424,7 +424,7 @@ export const LandingPage: React.FC = () => {
                   {/* Top Metadata Bar */}
                   <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="px-3 py-1 rounded-lg glass-subtle text-cyan-400 text-[10px] font-bold border border-cyan-500/25">
+                      <span className="px-3 py-1 rounded-lg glass-subtle text-cyan-700 dark:text-cyan-400 text-[10px] font-bold border border-cyan-500/25">
                         ROMÂNĂ · ROMAN REALIST OBIECTIV
                       </span>
                       <span className="text-text-subtle text-[11px] font-semibold">8 min lectură</span>
@@ -436,11 +436,11 @@ export const LandingPage: React.FC = () => {
                       onClick={() => setHighlightBarem((prev) => !prev)}
                       className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold transition-all border shadow-subtle ${
                         highlightBarem
-                          ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/35'
+                          ? 'bg-cyan-500/15 text-cyan-800 dark:text-cyan-300 border-cyan-500/35'
                           : 'bg-surface text-text-muted border-border hover:text-text'
                       }`}
                     >
-                      <Highlighter className="w-3.5 h-3.5 text-cyan-400" />
+                      <Highlighter className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />
                       <span>{highlightBarem ? 'Repere Barem: Evidențiate' : 'Evidențiază Reperele'}</span>
                     </button>
                   </div>
@@ -463,9 +463,9 @@ export const LandingPage: React.FC = () => {
                       </button>
                       <div>
                         <div className="text-xs font-bold text-text flex items-center gap-1.5">
-                          <Volume2 className="w-4 h-4 text-cyan-400" />
+                          <Volume2 className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
                           <span>Sinteză Audio Narată</span>
-                          {isPlayingAudio && <span className="text-[10px] text-cyan-400 font-semibold animate-pulse">● În redare</span>}
+                          {isPlayingAudio && <span className="text-[10px] text-cyan-700 dark:text-cyan-400 font-semibold animate-pulse">● În redare</span>}
                         </div>
                         <p className="text-[11px] text-text-muted mt-0.5">Ideile esențiale pentru recapitulare rapidă (4:18 / 8:35)</p>
                       </div>
@@ -473,11 +473,11 @@ export const LandingPage: React.FC = () => {
 
                     {/* Animated Waveform Equalizer */}
                     <div className="flex items-center gap-1.5 h-6">
-                      <span className={`w-1 bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-1' : 'h-2'}`} />
-                      <span className={`w-1 bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-2' : 'h-3'}`} />
-                      <span className={`w-1 bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-3' : 'h-5'}`} />
-                      <span className={`w-1 bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-4' : 'h-2'}`} />
-                      <span className={`w-1 bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-5' : 'h-3'}`} />
+                      <span className={`w-1 bg-cyan-500 dark:bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-1' : 'h-2'}`} />
+                      <span className={`w-1 bg-cyan-500 dark:bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-2' : 'h-3'}`} />
+                      <span className={`w-1 bg-cyan-500 dark:bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-3' : 'h-5'}`} />
+                      <span className={`w-1 bg-cyan-500 dark:bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-4' : 'h-2'}`} />
+                      <span className={`w-1 bg-cyan-500 dark:bg-cyan-400 rounded-full ${isPlayingAudio ? 'animate-wave-5' : 'h-3'}`} />
                     </div>
                   </div>
 
@@ -487,7 +487,7 @@ export const LandingPage: React.FC = () => {
                     <span
                       className={`transition-all duration-300 ${
                         highlightBarem
-                          ? 'bg-cyan-500/15 text-cyan-300 px-1 py-0.5 rounded font-semibold border-b border-cyan-400/40'
+                          ? 'bg-[#cffafe] dark:bg-cyan-500/15 text-[#155e75] dark:text-cyan-300 px-1.5 py-0.5 rounded-md font-semibold border-b-2 border-[#0891b2] dark:border-cyan-400/40'
                           : ''
                       }`}
                     >
@@ -497,8 +497,8 @@ export const LandingPage: React.FC = () => {
                   </p>
 
                   {/* Operational Methodology Callout Box */}
-                  <div className="p-4 rounded-2xl border-l-2 border-cyan-400 glass-default space-y-1.5">
-                    <span className="font-bold text-cyan-400 text-[10px] uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="p-4 rounded-2xl border-l-4 border-cyan-600 dark:border-cyan-400 bg-cyan-500/5 dark:bg-surface-elevated/40 space-y-1.5">
+                    <span className="font-bold text-cyan-700 dark:text-cyan-400 text-[10px] uppercase tracking-wider flex items-center gap-1.5">
                       <Target className="w-3.5 h-3.5" />
                       REPER OBLIGATORIU BAREM · SECVENȚĂ COMENTATĂ
                     </span>

@@ -130,8 +130,8 @@ export const ChapterLessonsCard: React.FC<Props> = ({
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold ${
                           isPro
-                            ? 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
-                            : 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
+                            ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/25'
+                            : 'bg-cyan-500/10 text-cyan-800 dark:text-cyan-300 border border-cyan-500/20'
                         }`}
                       >
                         {isPro && <Lock className="w-2.5 h-2.5" />}

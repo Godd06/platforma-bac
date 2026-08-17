@@ -33,11 +33,11 @@ export const ProUpgradePage: React.FC = () => {
         innerClassName="glass-featured-pro p-6 sm:p-8 space-y-5 shadow-raised light-sweep-hover"
       >
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/25">
-            <Sparkles className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25">
+            <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
             <span>PACHETUL PRO</span>
           </span>
-          <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center">
             <ShieldCheck className="w-4 h-4" />
           </div>
         </div>
@@ -59,14 +59,14 @@ export const ProUpgradePage: React.FC = () => {
         )}
 
         <div className="space-y-2.5 pt-2 border-t border-border-subtle">
-          <h3 className="text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-cyan-700 dark:text-cyan-400 uppercase tracking-wider flex items-center gap-1.5">
             <Zap className="w-3.5 h-3.5" />
             <span>Tot ce primești cu accesul PRO:</span>
           </h3>
           <ul className="space-y-2">
             {benefits.map((benefit, idx) => (
               <li key={idx} className="flex items-start gap-2.5 text-xs text-text">
-                <div className="w-3.5 h-3.5 rounded-full bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-3.5 h-3.5 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
                   <Check className="w-2 h-2" />
                 </div>
                 <span className="leading-relaxed">{benefit}</span>

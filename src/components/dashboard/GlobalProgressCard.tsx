@@ -14,7 +14,7 @@ export const GlobalProgressCard: React.FC<GlobalProgressCardProps> = ({ data }) 
     <div className="p-6 rounded-2xl glass-elevated interactive-card border border-border flex flex-col justify-between space-y-4 shadow-subtle">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/25 text-cyan-400 flex items-center justify-center shadow-subtle">
+          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-500/25 text-cyan-700 dark:text-cyan-400 flex items-center justify-center shadow-subtle">
             <Sparkles className="w-4 h-4" />
           </div>
           <h3 className="font-display text-sm font-bold text-text">Progres Global Bac</h3>
@@ -41,10 +41,10 @@ export const GlobalProgressCard: React.FC<GlobalProgressCardProps> = ({ data }) 
 
         <div className="p-2.5 rounded-xl glass-subtle border border-border-subtle">
           <div className="flex items-center justify-center gap-1.5 text-[11px] font-medium text-text-muted mb-0.5">
-            <span className="w-2 h-2 rounded-full bg-cyan-400" />
+            <span className="w-2 h-2 rounded-full bg-cyan-600 dark:bg-cyan-400" />
             <span>Rămase</span>
           </div>
-          <p className="text-base font-bold text-cyan-400">
+          <p className="text-base font-bold text-cyan-700 dark:text-cyan-400">
             {Math.max(0, totalPublishedLessons - completedLessons)}
           </p>
         </div>

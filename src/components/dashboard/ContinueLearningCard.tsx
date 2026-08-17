@@ -13,7 +13,7 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ data
   if (!data) {
     return (
       <div className="rounded-2xl border border-cyan-500/25 glass-elevated p-6 sm:p-7 space-y-4 shadow-subtle">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-400">
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">
           <Sparkles className="w-4 h-4" />
           <span>Pasul Următor</span>
         </div>
@@ -48,14 +48,14 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ data
     <AnimatedBorderCard variant="cyan" glow={true} innerClassName="glass-featured p-6 sm:p-7 space-y-5 light-sweep-hover shadow-raised">
       {/* Top Context Tag */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-400">
-          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 dark:bg-cyan-400 animate-pulse" />
           <span>Continuă de unde ai rămas</span>
         </div>
 
         {updatedAt && (
           <span className="text-[11px] text-text-subtle font-medium flex items-center gap-1.5 glass-subtle px-2.5 py-1 rounded-lg border border-border-subtle">
-            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <Clock className="w-3.5 h-3.5 text-cyan-700 dark:text-cyan-400" />
             <span>Accesat recent ({new Date(updatedAt).toLocaleDateString('ro-RO')})</span>
           </span>
         )}
@@ -64,12 +64,12 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ data
       {/* Subject & Lesson Title */}
       <div className="space-y-1.5">
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-text-muted">
-          <span className="text-cyan-400">{subjectName}</span>
+          <span className="text-cyan-700 dark:text-cyan-400">{subjectName}</span>
           <span className="text-text-subtle">•</span>
           <span className="truncate max-w-md">{chapterTitle}</span>
         </div>
 
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-text tracking-tight hover:text-cyan-300 transition-colors">
+        <h2 className="font-display text-xl sm:text-2xl font-bold text-text tracking-tight hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors">
           <Link to={`/lesson/${lessonId}`}>{lessonTitle}</Link>
         </h2>
       </div>
@@ -78,7 +78,7 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ data
       <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between text-xs">
           <span className="text-text-muted font-medium">Progres asimilat</span>
-          <span className="text-cyan-400 font-bold">{Math.round(progressPercent)}%</span>
+          <span className="text-cyan-700 dark:text-cyan-400 font-bold">{Math.round(progressPercent)}%</span>
         </div>
 
         <ProgressBar percentage={progressPercent} height="h-2" />
@@ -97,7 +97,7 @@ export const ContinueLearningCard: React.FC<ContinueLearningCardProps> = ({ data
             to="/catalog"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border glass-subtle text-text hover:bg-surface-elevated active:scale-[0.98] transition-all text-xs font-semibold min-h-[42px]"
           >
-            <Library className="w-4 h-4 text-cyan-400" />
+            <Library className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
             <span>Toate materiile în Catalog</span>
           </Link>
         </div>

@@ -59,12 +59,12 @@ export const AdminLayout: React.FC = () => {
             onClick={onNavigate}
             className="flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 group-hover:scale-105 transition-transform shadow-[0_0_16px_rgba(245,158,11,0.25)]">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform shadow-[0_0_16px_rgba(245,158,11,0.25)]">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div className="flex flex-col">
               <span className="font-display font-bold text-base tracking-tight text-text leading-tight">
-                Platforma<span className="text-amber-400">Admin</span>
+                Platforma<span className="text-amber-600 dark:text-amber-400">Admin</span>
               </span>
               <span className="text-[10px] text-text-subtle font-medium tracking-wider uppercase -mt-0.5">
                 CMS & Administrare
@@ -98,7 +98,7 @@ export const AdminLayout: React.FC = () => {
                 className={({ isActive }) =>
                   `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                     isActive
-                      ? 'bg-surface-active text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
                   }`
                 }
@@ -106,9 +106,9 @@ export const AdminLayout: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     {isActive && (
-                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-400" />
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
                     )}
-                    <LayoutDashboard className="w-4 h-4 shrink-0 text-amber-400" />
+                    <LayoutDashboard className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                     <span>Panou Control</span>
                   </>
                 )}
@@ -120,7 +120,7 @@ export const AdminLayout: React.FC = () => {
                 className={({ isActive }) =>
                   `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
                     isActive
-                      ? 'bg-surface-active text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
                   }`
                 }
@@ -128,9 +128,9 @@ export const AdminLayout: React.FC = () => {
                 {({ isActive }) => (
                   <>
                     {isActive && (
-                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-400" />
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
                     )}
-                    <BookOpen className="w-4 h-4 shrink-0 text-amber-400" />
+                    <BookOpen className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                     <span>Curriculum & Lecții</span>
                   </>
                 )}
@@ -148,7 +148,7 @@ export const AdminLayout: React.FC = () => {
           className="flex items-center justify-between p-3.5 rounded-2xl bg-surface border border-border hover:border-cyan-500/30 text-xs font-semibold text-text transition-colors shadow-subtle"
         >
           <div className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4 text-cyan-400" />
+            <ArrowLeft className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
             <span>Înapoi în Modul Elev</span>
           </div>
         </Link>
@@ -156,7 +156,7 @@ export const AdminLayout: React.FC = () => {
         <div className="flex items-center justify-between gap-2 p-3 rounded-2xl glass-subtle border border-border-subtle">
           <div className="min-w-0">
             <p className="text-xs font-bold text-text truncate">{userDisplayName}</p>
-            <p className="text-[10px] text-amber-400 font-medium">Administrator</p>
+            <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">Administrator</p>
           </div>
 
           <div className="flex items-center gap-1">

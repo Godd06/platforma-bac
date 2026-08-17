@@ -20,7 +20,7 @@ export const StreakCard: React.FC<StreakCardProps> = ({ data }) => {
     <div className="p-6 rounded-2xl glass-elevated interactive-card border border-border flex flex-col justify-between space-y-4 shadow-subtle">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center font-bold text-xs shadow-subtle">
+          <div className="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold text-xs shadow-subtle">
             <Flame className="w-4 h-4 fill-current" />
           </div>
           <h3 className="font-display text-sm font-bold text-text">Ritm de Studiu</h3>
@@ -67,9 +67,9 @@ export const StreakCard: React.FC<StreakCardProps> = ({ data }) => {
                 <div
                   className={`w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-bold transition-colors ${
                     isCompletedInStreak
-                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-subtle'
+                      ? 'bg-amber-500/20 border border-amber-500/40 text-amber-800 dark:text-amber-300 shadow-subtle'
                       : isDayToday
-                      ? 'bg-surface-elevated border border-cyan-500/40 text-cyan-400'
+                      ? 'bg-surface-elevated border border-cyan-500/40 text-cyan-700 dark:text-cyan-400'
                       : 'bg-surface-elevated/40 border border-border-subtle text-text-subtle'
                   }`}
                 >
@@ -88,7 +88,7 @@ export const StreakCard: React.FC<StreakCardProps> = ({ data }) => {
       {/* Personal Record */}
       <div className="p-2.5 rounded-xl glass-subtle flex items-center justify-between text-xs border border-border-subtle">
         <span className="text-text-muted flex items-center gap-2 text-xs font-medium">
-          <Trophy className="w-3.5 h-3.5 text-amber-400" />
+          <Trophy className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           <span>Record personal</span>
         </span>
         <span className="font-bold text-text text-xs">

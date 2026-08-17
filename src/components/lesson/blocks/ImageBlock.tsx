@@ -6,10 +6,6 @@ interface Props {
   content: ImageBlockContent
 }
 
-/**
- * Validates image URLs to prevent malicious scheme injection (javascript:, data:, vbscript:, //).
- * Allows HTTPS, HTTP, and safe relative paths.
- */
 function isSafeImageUrl(rawUrl: unknown): boolean {
   if (!rawUrl || typeof rawUrl !== 'string') return false
   const trimmed = rawUrl.trim()
@@ -38,34 +34,38 @@ function isSafeImageUrl(rawUrl: unknown): boolean {
 }
 
 export const ImageBlock: React.FC<Props> = ({ content }) => {
-  const { url, alt = 'Imagine lecție', caption } = content
+  const contentRecord = content as unknown as Record<string, unknown>
+  const urlVal = content.url || (contentRecord.src as string) || ''
+  const altVal = content.alt || (contentRecord.caption as string) || 'Imagine eseu'
+  const captionVal = content.caption || ''
   const [hasError, setHasError] = useState(false)
 
-  const isUrlValid = isSafeImageUrl(url)
+  const isUrlValid = isSafeImageUrl(urlVal)
 
-  if (!url || !isUrlValid || hasError) {
+  if (!urlVal || !isUrlValid || hasError) {
     return (
-      <div className="my-4 flex flex-col items-center justify-center p-8 rounded-xl border border-dashed border-border bg-surface text-text-muted text-center space-y-2">
-        <ImageOff className="w-8 h-8 opacity-50" />
-        <p className="text-xs">{alt || 'Imaginea nu a putut fi încărcată.'}</p>
+      <div className="my-5 flex flex-col items-center justify-center p-8 rounded-2xl border border-dashed border-border bg-surface text-text-muted text-center space-y-2 max-w-prose">
+        <ImageOff className="w-8 h-8 opacity-40 text-text-subtle" />
+        <p className="text-xs font-semibold text-text-muted">{altVal || 'Imaginea nu a putut fi încărcată.'}</p>
+        <span className="text-[10px] text-text-subtle font-mono">{urlVal ? `URL: ${urlVal.substring(0, 40)}...` : 'Niciun URL specificat'}</span>
       </div>
     )
   }
 
   return (
-    <figure className="my-6 space-y-2">
-      <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <figure className="my-6 space-y-2 max-w-prose animate-fadeIn">
+      <div className="overflow-hidden rounded-2xl border border-border shadow-subtle bg-surface-elevated">
         <img
-          src={url}
-          alt={alt}
-          onError={() => setHasError(true)}
-          className="w-full h-auto max-h-[500px] object-cover"
+          src={urlVal}
+          alt={altVal}
           loading="lazy"
+          onError={() => setHasError(true)}
+          className="w-full h-auto max-h-[460px] object-cover transition-transform duration-300 hover:scale-[1.01]"
         />
       </div>
-      {caption && (
-        <figcaption className="text-center text-xs text-text-muted italic px-2">
-          {caption}
+      {captionVal && (
+        <figcaption className="text-center text-xs text-text-muted italic px-2 font-literary-serif">
+          {captionVal}
         </figcaption>
       )}
     </figure>

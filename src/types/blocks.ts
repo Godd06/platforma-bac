@@ -39,6 +39,35 @@ export interface ImageBlockContent {
   caption?: string
 }
 
+export interface VideoBlockContent {
+  url: string
+  title?: string
+  poster?: string
+  caption?: string
+}
+
+export interface AudioBlockContent {
+  url: string
+  title?: string
+  duration?: string
+  transcript?: string
+}
+
+export interface FileDownloadBlockContent {
+  url: string
+  filename: string
+  filesize?: string
+  filetype?: string
+  description?: string
+}
+
+export interface QuoteBlockContent {
+  quote: string
+  author?: string
+  work?: string
+  commentary?: string
+}
+
 export interface LessonBlockData {
   id: string
   lesson_id: string
