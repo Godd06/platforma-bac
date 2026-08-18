@@ -39,6 +39,21 @@ export function useDashboardData(): UseDashboardDataResult {
   useEffect(() => {
     if (!authLoading && user?.id) {
       loadData()
+
+      const handleFocus = () => {
+        loadData()
+      }
+
+      window.addEventListener('focus', handleFocus)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          loadData()
+        }
+      })
+
+      return () => {
+        window.removeEventListener('focus', handleFocus)
+      }
     } else if (!authLoading && !user) {
       setLoading(false)
     }

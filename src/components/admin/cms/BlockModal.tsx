@@ -9,6 +9,10 @@ import {
   BookOpen,
   CheckSquare,
   Image as ImageIcon,
+  Video,
+  Volume2,
+  Download,
+  Quote,
   Code,
   Plus,
   Trash2,
@@ -77,6 +81,30 @@ export const BlockModal: React.FC<BlockModalProps> = ({
   const [imageAlt, setImageAlt] = useState('')
   const [imageCaption, setImageCaption] = useState('')
 
+  // Video Block State
+  const [videoUrl, setVideoUrl] = useState('')
+  const [videoTitle, setVideoTitle] = useState('')
+  const [videoPoster, setVideoPoster] = useState('')
+  const [videoCaption, setVideoCaption] = useState('')
+
+  // Audio Block State
+  const [audioUrl, setAudioUrl] = useState('')
+  const [audioTitle, setAudioTitle] = useState('')
+  const [audioDuration, setAudioDuration] = useState('5')
+  const [audioTranscript, setAudioTranscript] = useState('')
+
+  // File Download Block State
+  const [fileUrl, setFileUrl] = useState('')
+  const [fileFilename, setFileFilename] = useState('')
+  const [fileFilesize, setFileFilesize] = useState('')
+  const [fileDescription, setFileDescription] = useState('')
+
+  // Quote Block State
+  const [quoteText, setQuoteText] = useState('')
+  const [quoteAuthor, setQuoteAuthor] = useState('')
+  const [quoteWork, setQuoteWork] = useState('')
+  const [quoteCommentary, setQuoteCommentary] = useState('')
+
   useEffect(() => {
     if (block) {
       setBlockType(block.block_type || 'rich_text')
@@ -111,6 +139,26 @@ export const BlockModal: React.FC<BlockModalProps> = ({
         setImageUrl((content.url as string) || '')
         setImageAlt((content.alt as string) || '')
         setImageCaption((content.caption as string) || '')
+      } else if (block.block_type === 'video') {
+        setVideoUrl((content.url as string) || '')
+        setVideoTitle((content.title as string) || '')
+        setVideoPoster((content.poster as string) || '')
+        setVideoCaption((content.caption as string) || '')
+      } else if (block.block_type === 'audio') {
+        setAudioUrl((content.url as string) || '')
+        setAudioTitle((content.title as string) || '')
+        setAudioDuration((content.duration as string) || '5')
+        setAudioTranscript((content.transcript as string) || '')
+      } else if (block.block_type === 'file_download' || block.block_type === 'attachment' || block.block_type === 'resource') {
+        setFileUrl((content.url as string) || '')
+        setFileFilename((content.filename as string) || '')
+        setFileFilesize((content.filesize as string) || '')
+        setFileDescription((content.description as string) || '')
+      } else if (block.block_type === 'quote' || block.block_type === 'literary_quote') {
+        setQuoteText((content.quote as string) || (content.text as string) || '')
+        setQuoteAuthor((content.author as string) || '')
+        setQuoteWork((content.work as string) || '')
+        setQuoteCommentary((content.commentary as string) || '')
       }
     } else {
       setBlockType('rich_text')
@@ -142,6 +190,26 @@ export const BlockModal: React.FC<BlockModalProps> = ({
       setImageUrl('')
       setImageAlt('')
       setImageCaption('')
+
+      setVideoUrl('')
+      setVideoTitle('')
+      setVideoPoster('')
+      setVideoCaption('')
+
+      setAudioUrl('')
+      setAudioTitle('')
+      setAudioDuration('5')
+      setAudioTranscript('')
+
+      setFileUrl('')
+      setFileFilename('')
+      setFileFilesize('')
+      setFileDescription('')
+
+      setQuoteText('')
+      setQuoteAuthor('')
+      setQuoteWork('')
+      setQuoteCommentary('')
     }
     setFormError(null)
   }, [block, initialSortOrder, isOpen])
@@ -264,6 +332,58 @@ export const BlockModal: React.FC<BlockModalProps> = ({
           }
           break
 
+        case 'video':
+          if (!videoUrl.trim()) {
+            setFormError('URL-ul video este obligatoriu.')
+            return
+          }
+          content = {
+            url: videoUrl.trim(),
+            ...(videoTitle.trim() ? { title: videoTitle.trim() } : {}),
+            ...(videoPoster.trim() ? { poster: videoPoster.trim() } : {}),
+            ...(videoCaption.trim() ? { caption: videoCaption.trim() } : {}),
+          }
+          break
+
+        case 'audio':
+          if (!audioUrl.trim()) {
+            setFormError('URL-ul audio este obligatoriu.')
+            return
+          }
+          content = {
+            url: audioUrl.trim(),
+            ...(audioTitle.trim() ? { title: audioTitle.trim() } : {}),
+            ...(audioDuration ? { duration: audioDuration } : {}),
+            ...(audioTranscript.trim() ? { transcript: audioTranscript.trim() } : {}),
+          }
+          break
+
+        case 'file_download':
+          if (!fileUrl.trim() || !fileFilename.trim()) {
+            setFormError('URL-ul resursei și numele fișierului sunt obligatorii.')
+            return
+          }
+          content = {
+            url: fileUrl.trim(),
+            filename: fileFilename.trim(),
+            ...(fileFilesize.trim() ? { filesize: fileFilesize.trim() } : {}),
+            ...(fileDescription.trim() ? { description: fileDescription.trim() } : {}),
+          }
+          break
+
+        case 'quote':
+          if (!quoteText.trim()) {
+            setFormError('Textul citatului este obligatoriu.')
+            return
+          }
+          content = {
+            quote: quoteText.trim(),
+            ...(quoteAuthor.trim() ? { author: quoteAuthor.trim() } : {}),
+            ...(quoteWork.trim() ? { work: quoteWork.trim() } : {}),
+            ...(quoteCommentary.trim() ? { commentary: quoteCommentary.trim() } : {}),
+          }
+          break
+
         default:
           content = {}
           break
@@ -290,6 +410,10 @@ export const BlockModal: React.FC<BlockModalProps> = ({
     definition: <BookOpen className="w-4 h-4 text-cyan-400" />,
     summary: <CheckSquare className="w-4 h-4 text-emerald-400" />,
     image: <ImageIcon className="w-4 h-4 text-purple-400" />,
+    video: <Video className="w-4 h-4 text-red-400" />,
+    audio: <Volume2 className="w-4 h-4 text-amber-400" />,
+    file_download: <Download className="w-4 h-4 text-blue-400" />,
+    quote: <Quote className="w-4 h-4 text-amber-300" />,
   }
 
   return (
@@ -374,6 +498,10 @@ export const BlockModal: React.FC<BlockModalProps> = ({
                 { id: 'definition', name: 'Definiție Literară', icon: <BookOpen className="w-3.5 h-3.5" /> },
                 { id: 'summary', name: 'Sinteză / Barem', icon: <CheckSquare className="w-3.5 h-3.5" /> },
                 { id: 'image', name: 'Imagine / Schemă', icon: <ImageIcon className="w-3.5 h-3.5" /> },
+                { id: 'video', name: 'Lecție Video', icon: <Video className="w-3.5 h-3.5" /> },
+                { id: 'audio', name: 'Audio Sinteză', icon: <Volume2 className="w-3.5 h-3.5" /> },
+                { id: 'file_download', name: 'Resursă PDF/Fișier', icon: <Download className="w-3.5 h-3.5" /> },
+                { id: 'quote', name: 'Citat Literar', icon: <Quote className="w-3.5 h-3.5" /> },
               ].map((t) => (
                 <button
                   key={t.id}
@@ -400,19 +528,19 @@ export const BlockModal: React.FC<BlockModalProps> = ({
               </label>
               <textarea
                 id="block-raw-json"
-                rows={10}
+                rows={8}
                 value={rawJsonText}
                 onChange={(e) => setRawJsonText(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-surface border border-border font-mono text-xs text-text focus:outline-none focus:border-amber-400"
+                className="w-full p-3 rounded-xl bg-black/80 border border-border text-xs font-mono text-cyan-300 focus:outline-none focus:border-amber-400"
               />
             </div>
           ) : (
-            <div className="p-4 rounded-xl bg-surface-elevated/30 border border-border space-y-3.5">
+            <div className="space-y-4 pt-1">
               {/* 1. HEADING */}
               {blockType === 'heading' && (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <div className="sm:col-span-3 space-y-1.5">
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2 space-y-1.5">
                       <label htmlFor="heading-text-input" className="block text-xs font-bold text-text">
                         Text Titlu <span className="text-status-danger">*</span>
                       </label>
@@ -422,14 +550,14 @@ export const BlockModal: React.FC<BlockModalProps> = ({
                         required
                         value={headingText}
                         onChange={(e) => setHeadingText(e.target.value)}
-                        placeholder="ex: 1. Încadrarea operei în contextul literar"
+                        placeholder="ex: II. Viziunea despre lume în opera Moara cu noroc"
                         className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <label htmlFor="heading-level-select" className="block text-xs font-bold text-text">
-                        Nivel (H1-H4)
+                        Nivel Ierarhic
                       </label>
                       <select
                         id="heading-level-select"
@@ -437,49 +565,44 @@ export const BlockModal: React.FC<BlockModalProps> = ({
                         onChange={(e) => setHeadingLevel(Number(e.target.value))}
                         className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
                       >
-                        <option value={1}>H1 (Titlu Mare)</option>
-                        <option value={2}>H2 (Secțiune Principală)</option>
-                        <option value={3}>H3 (Subsecțiune)</option>
-                        <option value={4}>H4 (Punct Barem)</option>
+                        <option value={1}>H1 - Titlu Principal</option>
+                        <option value={2}>H2 - Secțiune Mare</option>
+                        <option value={3}>H3 - Subsecțiune</option>
+                        <option value={4}>H4 - Detaliu</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label htmlFor="heading-subtitle-input" className="block text-xs font-bold text-text">
-                      Subtitlu / Notă explicativă (Opțional)
+                      Subtitlu / Note Suplimentare (Opțional)
                     </label>
                     <input
                       id="heading-subtitle-input"
                       type="text"
                       value={headingSubtitle}
                       onChange={(e) => setHeadingSubtitle(e.target.value)}
-                      placeholder="ex: Repere pentru redactarea primului paragraf"
+                      placeholder="ex: Structură și compoziție narativă"
                       className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
                     />
                   </div>
-                </>
+                </div>
               )}
 
               {/* 2. RICH TEXT */}
               {blockType === 'rich_text' && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="rich-text-content" className="block text-xs font-bold text-text">
-                      Conținut Text / Paragrafe HTML <span className="text-status-danger">*</span>
-                    </label>
-                    <span className="text-[11px] text-text-subtle">
-                      Suportă tag-uri: &lt;p&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;ul&gt;, &lt;li&gt;, &lt;blockquote&gt;
-                    </span>
-                  </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="rich-text-input" className="block text-xs font-bold text-text">
+                    Conținut Text / HTML <span className="text-status-danger">*</span>
+                  </label>
                   <textarea
-                    id="rich-text-content"
-                    rows={8}
+                    id="rich-text-input"
+                    rows={6}
                     required
                     value={richTextHtml}
                     onChange={(e) => setRichTextHtml(e.target.value)}
-                    placeholder="<p>Introdu textul paragrafului aici. Poți folosi <strong>bold</strong> sau <em>italic</em>.</p>"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface border border-border text-sm text-text font-literary-serif leading-relaxed focus:outline-none focus:border-amber-400"
+                    placeholder="Introdu paragrafele lecției. Poți folosi etichete HTML precum <p>, <strong>, <em>, <ul>, <li>..."
+                    className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text font-mono focus:outline-none focus:border-amber-400"
                   />
                 </div>
               )}
@@ -489,14 +612,14 @@ export const BlockModal: React.FC<BlockModalProps> = ({
                 <div className="space-y-3">
                   <div className="space-y-1.5">
                     <label htmlFor="important-title-input" className="block text-xs font-bold text-amber-400">
-                      Titlu Atenționare
+                      Titlu Alertă
                     </label>
                     <input
                       id="important-title-input"
                       type="text"
                       value={importantTitle}
                       onChange={(e) => setImportantTitle(e.target.value)}
-                      placeholder="ex: Capcană frecventă la Bacalaureat"
+                      placeholder="ex: Nuconfunda cu romanul subiectiv"
                       className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
                     />
                   </div>
@@ -737,6 +860,251 @@ export const BlockModal: React.FC<BlockModalProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* 8. VIDEO */}
+              {blockType === 'video' && (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="video-url-input" className="block text-xs font-bold text-text">
+                      URL Video (YouTube sau MP4 direct) <span className="text-status-danger">*</span>
+                    </label>
+                    <input
+                      id="video-url-input"
+                      type="text"
+                      required
+                      value={videoUrl}
+                      onChange={(e) => setVideoUrl(e.target.value)}
+                      placeholder="ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ sau https://.../video.mp4"
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text font-mono focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor="video-title-input" className="block text-xs font-bold text-text">
+                        Titlu Video (Opțional)
+                      </label>
+                      <input
+                        id="video-title-input"
+                        type="text"
+                        value={videoTitle}
+                        onChange={(e) => setVideoTitle(e.target.value)}
+                        placeholder="ex: Analiză video Moara cu noroc"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="video-caption-input" className="block text-xs font-bold text-text">
+                        Legendă Video
+                      </label>
+                      <input
+                        id="video-caption-input"
+                        type="text"
+                        value={videoCaption}
+                        onChange={(e) => setVideoCaption(e.target.value)}
+                        placeholder="ex: Explicație detaliată de 15 minute"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 9. AUDIO */}
+              {blockType === 'audio' && (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="audio-url-input" className="block text-xs font-bold text-text">
+                      URL Fișier Audio (MP3 / WAV) <span className="text-status-danger">*</span>
+                    </label>
+                    <input
+                      id="audio-url-input"
+                      type="text"
+                      required
+                      value={audioUrl}
+                      onChange={(e) => setAudioUrl(e.target.value)}
+                      placeholder="ex: https://.../audio-sinteza-bac.mp3"
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text font-mono focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor="audio-title-input" className="block text-xs font-bold text-text">
+                        Titlu Sinteză Audio
+                      </label>
+                      <input
+                        id="audio-title-input"
+                        type="text"
+                        value={audioTitle}
+                        onChange={(e) => setAudioTitle(e.target.value)}
+                        placeholder="ex: Sinteză Audio Moara cu noroc"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="audio-dur-input" className="block text-xs font-bold text-text">
+                        Durată (minute)
+                      </label>
+                      <input
+                        id="audio-dur-input"
+                        type="text"
+                        value={audioDuration}
+                        onChange={(e) => setAudioDuration(e.target.value)}
+                        placeholder="ex: 8"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="audio-trans-input" className="block text-xs font-bold text-text">
+                      Transcrierea Text a Fișierului Audio (Opțional)
+                    </label>
+                    <textarea
+                      id="audio-trans-input"
+                      rows={3}
+                      value={audioTranscript}
+                      onChange={(e) => setAudioTranscript(e.target.value)}
+                      placeholder="Introdu transcrierea text completă..."
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* 10. FILE DOWNLOAD */}
+              {(blockType === 'file_download' || blockType === 'attachment' || blockType === 'resource') && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor="file-url-input" className="block text-xs font-bold text-text">
+                        URL Fișier Descarcabil <span className="text-status-danger">*</span>
+                      </label>
+                      <input
+                        id="file-url-input"
+                        type="text"
+                        required
+                        value={fileUrl}
+                        onChange={(e) => setFileUrl(e.target.value)}
+                        placeholder="ex: https://.../sinteza-bac.pdf"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text font-mono focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="file-name-input" className="block text-xs font-bold text-text">
+                        Nume Fișier Afișat <span className="text-status-danger">*</span>
+                      </label>
+                      <input
+                        id="file-name-input"
+                        type="text"
+                        required
+                        value={fileFilename}
+                        onChange={(e) => setFileFilename(e.target.value)}
+                        placeholder="ex: Esquisse_Moara_cu_noroc.pdf"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor="file-size-input" className="block text-xs font-bold text-text">
+                        Dimensiune Afișată
+                      </label>
+                      <input
+                        id="file-size-input"
+                        type="text"
+                        value={fileFilesize}
+                        onChange={(e) => setFileFilesize(e.target.value)}
+                        placeholder="ex: PDF • 1.4 MB"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="file-desc-input" className="block text-xs font-bold text-text">
+                        Descriere Resursă
+                      </label>
+                      <input
+                        id="file-desc-input"
+                        type="text"
+                        value={fileDescription}
+                        onChange={(e) => setFileDescription(e.target.value)}
+                        placeholder="ex: Fișă rezumat pentru imprimat"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 11. QUOTE */}
+              {(blockType === 'quote' || blockType === 'literary_quote') && (
+                <div className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label htmlFor="quote-text-input" className="block text-xs font-bold text-text">
+                      Text Citat Literar <span className="text-status-danger">*</span>
+                    </label>
+                    <textarea
+                      id="quote-text-input"
+                      rows={3}
+                      required
+                      value={quoteText}
+                      onChange={(e) => setQuoteText(e.target.value)}
+                      placeholder="ex: Omul să fie mulțumit cu sărăcia sa, căci, dacă e vorba, nu bogăția, ci liniștea colibei tale te face fericit."
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label htmlFor="quote-author-input" className="block text-xs font-bold text-text">
+                        Autor / Personaj
+                      </label>
+                      <input
+                        id="quote-author-input"
+                        type="text"
+                        value={quoteAuthor}
+                        onChange={(e) => setQuoteAuthor(e.target.value)}
+                        placeholder="ex: Bătrâna (mama Anei)"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label htmlFor="quote-work-input" className="block text-xs font-bold text-text">
+                        Opera / Sursa Citatului
+                      </label>
+                      <input
+                        id="quote-work-input"
+                        type="text"
+                        value={quoteWork}
+                        onChange={(e) => setQuoteWork(e.target.value)}
+                        placeholder="ex: Moara cu noroc de Ioan Slavici"
+                        className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label htmlFor="quote-comm-input" className="block text-xs font-bold text-text">
+                      Comentariu / Semnificație Examen (Opțional)
+                    </label>
+                    <input
+                      id="quote-comm-input"
+                      type="text"
+                      value={quoteCommentary}
+                      onChange={(e) => setQuoteCommentary(e.target.value)}
+                      placeholder="ex: Vorbele bătrânei constituie incipitul moralizator al nuvelei."
+                      className="w-full px-3 py-2 rounded-lg bg-surface border border-border text-sm text-text focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -780,3 +1148,5 @@ export const BlockModal: React.FC<BlockModalProps> = ({
     </div>
   )
 }
+
+export default BlockModal

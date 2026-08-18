@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   User,
   Mail,
@@ -16,15 +16,29 @@ import {
   CheckCircle2,
   Lock,
   Clock,
+  AlertCircle,
+  ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { useTheme } from '@/context/ThemeContext'
 import { AnimatedBorderCard } from '@/components/ui/AnimatedBorderCard'
+import { PasswordInput } from '@/components/ui/PasswordInput'
+import { PasswordStrength } from '@/components/ui/PasswordStrength'
+import { evaluatePassword } from '@/utils/passwordValidation'
+import { supabase } from '@/lib/supabase'
 
 export const SettingsPage: React.FC = () => {
-  const { user, roles, isPro } = useAuth()
+  const { user, roles, isPro, signOut } = useAuth()
   const { theme, setTheme } = useTheme()
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState<'account' | 'security' | 'subscription' | 'preferences'>('account')
+
+  // Password Security Form State
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [securityLoading, setSecurityLoading] = useState(false)
+  const [securityError, setSecurityError] = useState<string | null>(null)
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null)
 
   const displayName =
     (user?.user_metadata?.full_name as string) ||
@@ -187,26 +201,146 @@ export const SettingsPage: React.FC = () => {
           {activeTab === 'security' && (
             <div className="rounded-2xl glass-elevated border border-border p-6 sm:p-7 space-y-6 animate-fadeIn shadow-raised">
               <div className="pb-4 border-b border-border-subtle">
-                <h2 className="font-display text-lg font-bold text-text">Securitate Parolă</h2>
+                <h2 className="font-display text-lg font-bold text-text">Securitate Parolă & Sesiuni</h2>
                 <p className="text-xs text-text-muted mt-0.5">
-                  Gestionează parola contului și protecția datelor de autentificare.
+                  Schimbă parola contului tău sau revocă sesiunile active pe alte dispozitive.
                 </p>
               </div>
 
-              <div className="p-5 rounded-2xl glass-subtle border border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-text">Schimbare Parolă</h3>
-                  <p className="text-xs text-text-muted leading-relaxed">
-                    Vei primi un link de resetare securizat direct pe adresa ta de e-mail ({user?.email}).
+              {/* Status Notifications */}
+              {securityError && (
+                <div
+                  role="alert"
+                  className="p-3.5 rounded-xl bg-status-danger/10 border border-status-danger/30 text-status-danger text-xs flex items-start gap-2.5"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{securityError}</span>
+                </div>
+              )}
+
+              {securitySuccess && (
+                <div
+                  role="alert"
+                  className="p-3.5 rounded-xl bg-status-success/10 border border-status-success/30 text-status-success text-xs flex items-start gap-2.5"
+                >
+                  <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{securitySuccess}</span>
+                </div>
+              )}
+
+              {/* Direct Password Update Form */}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault()
+                  setSecurityError(null)
+                  setSecuritySuccess(null)
+
+                  const evaluation = evaluatePassword(newPassword)
+                  if (!evaluation.isAllValid) {
+                    setSecurityError('Noua parolă trebuie să respecte toate regulile de securitate.')
+                    return
+                  }
+                  if (newPassword !== confirmPassword) {
+                    setSecurityError('Parolele introduse nu coincid.')
+                    return
+                  }
+
+                  setSecurityLoading(true)
+                  try {
+                    const { error } = await supabase.auth.updateUser({ password: newPassword })
+                    if (error) {
+                      setSecurityError(error.message || 'Nu am putut actualiza parola.')
+                    } else {
+                      setSecuritySuccess('Parola a fost schimbată cu succes! Deconectăm toate sesiunile active...')
+                      setNewPassword('')
+                      setConfirmPassword('')
+                      setTimeout(async () => {
+                        await signOut({ scope: 'global' })
+                        navigate('/login', { replace: true })
+                      }, 2000)
+                    }
+                  } catch (err: unknown) {
+                    setSecurityError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată.')
+                  } finally {
+                    setSecurityLoading(false)
+                  }
+                }}
+                className="space-y-4 max-w-lg"
+              >
+                <div className="space-y-1.5">
+                  <label htmlFor="settings-new-password" className="block text-xs font-semibold text-text">
+                    Parolă Nouă
+                  </label>
+                  <PasswordInput
+                    id="settings-new-password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Minim 8 caractere"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 border border-border text-xs text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 min-h-[40px]"
+                  />
+                </div>
+
+                {newPassword.length > 0 && (
+                  <div className="p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle">
+                    <PasswordStrength password={newPassword} />
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label htmlFor="settings-confirm-password" className="block text-xs font-semibold text-text">
+                    Confirmă Parola Nouă
+                  </label>
+                  <PasswordInput
+                    id="settings-confirm-password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Reintrodu parola"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-surface-elevated/70 border border-border text-xs text-text placeholder:text-text-subtle focus:outline-none focus:border-cyan-400 min-h-[40px]"
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="submit"
+                    disabled={
+                      securityLoading ||
+                      !evaluatePassword(newPassword).isAllValid ||
+                      newPassword !== confirmPassword
+                    }
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-xs transition-all shadow-subtle disabled:opacity-40 min-h-[40px]"
+                  >
+                    {securityLoading ? (
+                      <span>Se actualizează...</span>
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4" />
+                        <span>Actualizează Parola & Revocă Sesiunile</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Alternative: Link to Reset Email */}
+              <div className="pt-4 border-t border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <h3 className="text-xs font-bold text-text flex items-center gap-1.5">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Recuperare Parolă prin E-mail</span>
+                  </h3>
+                  <p className="text-[11px] text-text-muted">
+                    Dacă ai uitat vechea parolă sau dorești un link de resetare pe e-mail ({user?.email}).
                   </p>
                 </div>
 
                 <Link
                   to="/forgot-password"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-surface border border-border hover:border-cyan-500/40 text-xs font-bold text-text hover:bg-surface-elevated transition-colors shadow-subtle min-h-[40px] shrink-0"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-surface border border-border hover:border-amber-500/40 text-[11px] font-bold text-amber-300 transition-colors min-h-[36px] shrink-0"
                 >
-                  <KeyRound className="w-4 h-4 text-cyan-400" />
-                  <span>Trimite link de resetare</span>
+                  <Mail className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Trimite e-mail resetare</span>
                 </Link>
               </div>
             </div>

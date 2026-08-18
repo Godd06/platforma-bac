@@ -53,6 +53,44 @@ export const LessonAudioBar: React.FC<LessonAudioBarProps> = ({
     }
   }, [speed])
 
+  // ⚠️ Pause audio on component unmount (e.g. navigating away from lesson)
+  // Without this, audio continues playing in background after route change.
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.src = '' // Detach source to release media resources
+      }
+    }
+  }, [])
+
+  // Media Session API — lockscreen / notification center controls (mobile)
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title,
+      artist: 'PlatformaBac',
+      album: 'Sinteză Audio',
+    })
+    navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true))
+    navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false))
+    navigator.mediaSession.setActionHandler('stop', () => {
+      setIsPlaying(false)
+      setProgressSeconds(0)
+    })
+    return () => {
+      navigator.mediaSession.setActionHandler('play', null)
+      navigator.mediaSession.setActionHandler('pause', null)
+      navigator.mediaSession.setActionHandler('stop', null)
+    }
+  }, [title])
+
+  // Sync Media Session playback state with component state
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
+  }, [isPlaying])
+
   // Handle seeking / sliding on range slider
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = Number(e.target.value)

@@ -1,4 +1,11 @@
-import { supabase } from '@/lib/supabase'
+import { supabase } from '../lib/supabase'
+import {
+  validateMediaFile,
+  sanitizeFilename,
+  getStorageBucket,
+  getSecureMediaUrl,
+  type MediaCategory,
+} from '../utils/storageSecurity'
 import type {
   Subject,
   Chapter,
@@ -11,6 +18,26 @@ import type { LessonBlockData } from '@/types/blocks'
 // ==========================================
 // TYPES & EXTENDED INTERFACES
 // ==========================================
+
+export function generateSlug(text: string): string {
+  if (!text) return ''
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+}
+
+export function reorderItems<T>(items: T[], index: number, direction: 'up' | 'down'): T[] {
+  if (!items || items.length === 0) return []
+  const result = [...items]
+  const targetIndex = direction === 'up' ? index - 1 : index + 1
+  if (targetIndex < 0 || targetIndex >= result.length) return result
+  const [removed] = result.splice(index, 1)
+  result.splice(targetIndex, 0, removed)
+  return result
+}
 
 export interface AdminSubjectWithCounts extends Subject {
   chapter_count: number
@@ -1132,25 +1159,34 @@ export async function reorderLessonBlock(
 
 export async function uploadMediaFile(
   file: File,
-  folder = 'content-media'
+  folder = 'content-media',
+  isProContent = false,
+  category: MediaCategory = 'image'
 ): Promise<{ url: string | null; error: string | null }> {
   try {
-    const fileExt = file.name.split('.').pop() || 'bin'
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.${fileExt}`
+    // 1. Hardened Validation (MIME allow-list, size limit, malicious SVG inspection)
+    const validation = await validateMediaFile(file, category)
+    if (!validation.valid) {
+      return { url: null, error: validation.error }
+    }
 
-    // 1. Attempt Supabase Storage Upload
+    // 2. Filename Normalization & Path Traversal Prevention
+    const safeFileName = `${folder}/${sanitizeFilename(file.name)}`
+    const bucketName = getStorageBucket(isProContent)
+
+    // 3. Attempt Supabase Storage Upload to appropriate bucket
     const { data, error } = await supabase.storage
-      .from('media')
-      .upload(fileName, file, { cacheControl: '3600', upsert: true })
+      .from(bucketName)
+      .upload(safeFileName, file, { cacheControl: '3600', upsert: true })
 
     if (!error && data?.path) {
-      const { data: publicUrlData } = supabase.storage.from('media').getPublicUrl(data.path)
-      if (publicUrlData?.publicUrl) {
-        return { url: publicUrlData.publicUrl, error: null }
+      const secureUrlRes = await getSecureMediaUrl(bucketName, data.path)
+      if (secureUrlRes.url) {
+        return { url: secureUrlRes.url, error: null }
       }
     }
 
-    // 2. High-reliability Fallback (Data URL FileReader)
+    // 4. Fallback Data URL reader for local preview if network is offline
     return new Promise((resolve) => {
       const reader = new FileReader()
       reader.onload = (e) => {

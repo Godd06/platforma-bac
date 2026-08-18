@@ -1,0 +1,21 @@
+# Platforma Bacalaureat Robots.txt Specification
+User-agent: *
+Allow: /$
+Allow: /login$
+Allow: /register$
+Allow: /pro$
+Allow: /catalog$
+Allow: /catalog/*
+
+# Explicitly Disallow Private Student Area & Admin Control Suite
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /admin/
+Disallow: /admin/*
+Disallow: /lesson/
+Disallow: /lesson/*
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Sitemap Reference
+Sitemap: https://platforma-bac.ro/sitemap.xml

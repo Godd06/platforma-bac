@@ -235,21 +235,39 @@ export const CatalogPage: React.FC = () => {
             </p>
           </header>
 
-          <section className="space-y-3.5">
-            <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
-              <span>Materii Disponibile ({subjectsList.length})</span>
-            </h2>
+          {/* Search bar for root catalog */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-700 dark:text-cyan-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Caută o materie de examen..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-surface border border-border text-xs sm:text-sm font-medium text-text placeholder:text-text-muted focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/25 transition-all shadow-subtle min-h-[44px]"
+            />
+          </div>
 
-            {subjectsList.length === 0 ? (
+          <section className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-sm sm:text-base font-bold text-text flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
+                <span>Materii Disponibile ({subjectsList.filter(s => !searchQuery.trim() || s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.slug.toLowerCase().includes(searchQuery.toLowerCase())).length})</span>
+              </h2>
+            </div>
+
+            {subjectsList.filter(s => !searchQuery.trim() || s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.slug.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 ? (
               <div className="py-8 text-center border border-dashed border-border rounded-xl bg-surface/30 p-4 text-text-muted space-y-1">
-                <p className="text-xs sm:text-sm font-medium">Nu există materii publicate în catalog încă.</p>
+                <p className="text-xs sm:text-sm font-medium">
+                  {searchQuery ? `Nicio materie găsită pentru „${searchQuery}”.` : 'Nu există materii publicate în catalog încă.'}
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {subjectsList.map((subj) => (
-                  <SubjectCard key={subj.id} subject={subj} />
-                ))}
+                {subjectsList
+                  .filter(s => !searchQuery.trim() || s.name.toLowerCase().includes(searchQuery.toLowerCase()) || s.slug.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .map((subj) => (
+                    <SubjectCard key={subj.id} subject={subj} />
+                  ))}
               </div>
             )}
           </section>

@@ -2,10 +2,62 @@
 <html lang="ro">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Favicon & PWA Icons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Platformă Bacalaureat — Premium Learning OS</title>
-    <meta name="description" content="Platformă educațională modernă pentru pregătirea examenului de Bacalaureat — Limba Română și Istorie." />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Viewport: viewport-fit=cover for safe areas on iPhone notch / Dynamic Island -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- PWA / Theme -->
+    <meta name="theme-color" content="#06b6d4" />
+    <meta name="color-scheme" content="dark light" />
+
+    <!-- Apple PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="PlatformaBac" />
+
+    <!-- Mobile -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="PlatformaBac" />
+
+    <title>Platformă Bacalaureat — Pregătire Examen Bac (Limba Română &amp; Istorie)</title>
+    <meta name="description" content="Platformă educațională modernă pentru pregătirea examenului de Bacalaureat — Limba Română și Istorie. Lecții structurate, bareme oficiale și recapitulare spațiată." />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Platformă Bacalaureat" />
+    <meta property="og:title" content="Platformă Bacalaureat — Pregătire Examen Bac" />
+    <meta property="og:description" content="Pregătește-te eficient pentru Bacalaureat cu lecții structurate, bareme oficiale și sintetizări pe materii." />
+    <meta property="og:url" content="https://platforma-bac.ro/" />
+    <meta property="og:image" content="https://platforma-bac.ro/og-image.jpg" />
+    <meta property="og:locale" content="ro_RO" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Platformă Bacalaureat — Pregătire Examen Bac" />
+    <meta name="twitter:description" content="Pregătește-te eficient pentru Bacalaureat cu lecții structurate și bareme oficiale." />
+    <meta name="twitter:image" content="https://platforma-bac.ro/og-image.jpg" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://platforma-bac.ro/" />
+
+    <!-- Schema.org EducationalOrganization Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "Platformă Bacalaureat",
+        "url": "https://platforma-bac.ro/",
+        "logo": "https://platforma-bac.ro/favicon.svg",
+        "description": "Platformă educațională modernă pentru pregătirea examenului de Bacalaureat."
+      }
+    </script>
+
     <!-- Prevent theme flash before first paint -->
     <script>
       (function() {

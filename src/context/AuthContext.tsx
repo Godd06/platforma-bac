@@ -14,7 +14,7 @@ export interface AuthContextType {
   hasRole: (role: UserRoleType) => boolean
   signUp: (email: string, password: string, options?: SignUpWithPasswordCredentials['options']) => Promise<AuthResponse>
   signIn: (email: string, password: string) => Promise<AuthResponse>
-  signOut: () => Promise<{ error: AuthError | null }>
+  signOut: (options?: { scope?: 'global' | 'local' | 'others' }) => Promise<{ error: AuthError | null }>
   refreshUserData: () => Promise<void>
 }
 
@@ -147,9 +147,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     })
   }
 
-  const signOut = async (): Promise<{ error: AuthError | null }> => {
+  const signOut = async (options?: { scope?: 'global' | 'local' | 'others' }): Promise<{ error: AuthError | null }> => {
     setLoading(true)
-    const res = await supabase.auth.signOut()
+    const res = await supabase.auth.signOut(options)
     setUser(null)
     setSession(null)
     setRoles([])
