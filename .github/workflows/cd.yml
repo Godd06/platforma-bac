@@ -1,4 +1,4 @@
-name: Platforma Bac CD Deployment Pipeline
+﻿name: Platforma Bac CD Deployment Pipeline
 
 on:
   push:
@@ -77,3 +77,4 @@ jobs:
       - name: Deploy to Production
         run: |
           echo "Deploying verified bundle to Production platforma-bac.ro..."
+

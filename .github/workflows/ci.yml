@@ -1,4 +1,4 @@
-name: Platforma Bac CI Pipeline
+﻿name: Platforma Bac CI Pipeline
 
 on:
   push:
@@ -56,3 +56,4 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || 'https://platforma-bac.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_ANON_KEY || 'prod-anon-key-placeholder' }}
         run: pnpm run build
+
