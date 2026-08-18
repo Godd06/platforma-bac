@@ -40,8 +40,10 @@ export const ResetPasswordPage: React.FC = () => {
       })
 
       if (updateError) {
-        setError(updateError.message || 'Nu am putut actualiza parola. Linkul ar putea fi expirat.')
+        setError(updateError.message || 'Nu am putut actualiza parola. Linkul ar putea fi expirat sau nevalid.')
       } else {
+        // Hardening: Revoke all active sessions across all devices for security
+        await supabase.auth.signOut({ scope: 'global' })
         setSuccess(true)
         setTimeout(() => {
           navigate('/login', { replace: true })

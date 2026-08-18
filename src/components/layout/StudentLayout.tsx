@@ -17,7 +17,7 @@ import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import { CommandPalette } from '@/components/ui/CommandPalette'
 
 export const StudentLayout: React.FC = () => {
-  const { user, signOut, isPro } = useAuth()
+  const { user, signOut, isPro, isAdmin } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
@@ -74,7 +74,7 @@ export const StudentLayout: React.FC = () => {
 
       {/* Global Luxury Header Bar (h-[72px], Unified Across All Pages) */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        className={`sticky top-0 z-40 w-full transition-all duration-300 header-safe ${
           isScrolled
             ? 'glass-floating border-b border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.25)]'
             : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
@@ -156,14 +156,16 @@ export const StudentLayout: React.FC = () => {
               </span>
             )}
 
-            <Link
-              to="/admin"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
-              title="Panou Administrare AdminCMS"
-            >
-              <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              <span>AdminCMS</span>
-            </Link>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
+                title="Panou Administrare AdminCMS"
+              >
+                <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                <span>AdminCMS</span>
+              </Link>
+            )}
 
             <Link
               to="/settings"
@@ -305,24 +307,26 @@ export const StudentLayout: React.FC = () => {
                   <span>Setări Cont</span>
                 </NavLink>
 
-                <NavLink
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
-                      isActive
-                        ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
-                        : 'text-amber-400 hover:bg-surface-elevated/60'
-                    }`
-                  }
-                >
-                  <ShieldCheck className="w-5 h-5 text-amber-400" />
-                  <span>Panou AdminCMS</span>
-                </NavLink>
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
+                        isActive
+                          ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
+                          : 'text-amber-400 hover:bg-surface-elevated/60'
+                      }`
+                    }
+                  >
+                    <ShieldCheck className="w-5 h-5 text-amber-400" />
+                    <span>Panou AdminCMS</span>
+                  </NavLink>
+                )}
               </nav>
             </div>
 
-            <div className="space-y-3 pt-5 border-t border-border">
+            <div className="space-y-3 pt-5 border-t border-border drawer-safe-bottom">
               <button
                 type="button"
                 onClick={() => {

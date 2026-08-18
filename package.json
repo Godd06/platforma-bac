@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "test": "npx tsx src/components/auth/AdminProtectedRoute.test.ts && npx tsx src/components/auth/AuthHardening.test.ts && npx tsx src/components/auth/RpcSecurity.test.ts && npx tsx src/components/auth/SchemaRlsAudit.test.ts && npx tsx src/components/auth/StorageSecurity.test.ts && npx tsx src/components/auth/AuthUx.test.ts && npx tsx src/components/dashboard/DashboardMetrics.test.ts && npx tsx src/components/catalog/CatalogSecurity.test.ts && npx tsx src/components/lesson/LessonViewer.test.ts && npx tsx src/components/admin/cms/LessonBlocksMatrix.test.ts && npx tsx src/components/admin/cms/RichTextAndHighlights.test.ts && npx tsx src/components/admin/cms/AdminCmsOperations.test.ts && npx tsx src/components/admin/cms/LessonStudioStudio.test.ts && npx tsx src/components/admin/media/MediaLibrary.test.ts && npx tsx src/components/admin/users/AdminUsersManagement.test.ts && npx tsx src/components/auth/SubscriptionEntitlement.test.ts && npx tsx src/components/analytics/AnalyticsTaxonomy.test.ts && npx tsx src/components/quiz/QuizSystem.test.ts && npx tsx src/components/ui/DesignSystemPrimitives.test.ts && npx tsx src/components/auth/AccessibilityAudit.test.ts && npx tsx src/components/catalog/SeoHelper.test.ts && npx tsx src/components/ui/ErrorHandlingSystem.test.ts && npx tsx src/tests/e2e/CriticalFlowsE2E.test.ts && npx tsx src/utils/Observability.test.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { BookOpen, AlertCircle, CheckCircle2, ArrowLeft, Mail } from 'lucide-react'
 
+import { isValidEmail } from '@/utils/authErrorMapper'
+
 export const ForgotPasswordPage: React.FC = () => {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -11,18 +13,31 @@ export const ForgotPasswordPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
     setError(null)
+
+    const cleanEmail = email.trim()
+    if (!isValidEmail(cleanEmail)) {
+      setError('Te rugăm să introduci o adresă de e-mail validă (ex: elev@liceu.ro).')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email)
+      const redirectTo = `${window.location.origin}/reset-password`
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo,
+      })
       if (resetError) {
-        setError(resetError.message || 'Nu am putut trimite linkul de resetare.')
-      } else {
-        setSubmitted(true)
+        // Prevent anti-enumeration: log error internally but present neutral success state
+        console.warn('[ForgotPassword] resetPasswordForEmail status:', resetError.message)
       }
+      // Always show neutral success state to prevent account enumeration attacks
+      setSubmitted(true)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată.')
+      console.error('[ForgotPassword] Unexpected error:', err)
+      setSubmitted(true)
     } finally {
       setLoading(false)
     }

@@ -19,7 +19,7 @@ import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import { Skeleton } from '@/components/ui/Skeleton'
 
 export const PublicLayout: React.FC = () => {
-  const { user, isAuthenticated, loading, signOut } = useAuth()
+  const { user, isAuthenticated, loading, signOut, isAdmin } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const navigate = useNavigate()
@@ -71,7 +71,7 @@ export const PublicLayout: React.FC = () => {
 
       {/* Global Navbar with Generous Luxury Height & Scroll-linked Glass Intensification */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        className={`sticky top-0 z-40 w-full transition-all duration-300 header-safe ${
           isScrolled
             ? 'glass-floating border-b border-border/80 shadow-[0_8px_32px_rgba(0,0,0,0.25)]'
             : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
@@ -150,14 +150,16 @@ export const PublicLayout: React.FC = () => {
               <Skeleton className="h-10 w-28" rounded="xl" />
             ) : isAuthenticated ? (
               <div className="flex items-center gap-2.5">
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
-                  title="Panou Administrare AdminCMS"
-                >
-                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span>AdminCMS</span>
-                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[38px]"
+                    title="Panou Administrare AdminCMS"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span>AdminCMS</span>
+                  </Link>
+                )}
 
                 <Link
                   to="/settings"
@@ -189,14 +191,6 @@ export const PublicLayout: React.FC = () => {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <Link
-                  to="/admin"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/25 transition-all shadow-subtle min-h-[40px]"
-                  title="Panou Administrare AdminCMS"
-                >
-                  <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                  <span>AdminCMS</span>
-                </Link>
 
                 <Link
                   to="/login"
@@ -323,20 +317,22 @@ export const PublicLayout: React.FC = () => {
                   <span>Abonament PRO</span>
                 </NavLink>
 
-                <NavLink
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
-                      isActive
-                        ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
-                        : 'text-amber-400 hover:bg-surface-elevated/60'
-                    }`
-                  }
-                >
-                  <ShieldCheck className="w-5 h-5 text-amber-400" />
-                  <span>Panou AdminCMS</span>
-                </NavLink>
+                {isAdmin && (
+                  <NavLink
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-base font-bold transition-all min-h-[52px] ${
+                        isActive
+                          ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40 shadow-subtle'
+                          : 'text-amber-400 hover:bg-surface-elevated/60'
+                      }`
+                    }
+                  >
+                    <ShieldCheck className="w-5 h-5 text-amber-400" />
+                    <span>Panou AdminCMS</span>
+                  </NavLink>
+                )}
 
                 {isAuthenticated && (
                   <NavLink
@@ -357,7 +353,7 @@ export const PublicLayout: React.FC = () => {
               </nav>
             </div>
 
-            <div className="space-y-3 pt-5 border-t border-border">
+            <div className="space-y-3 pt-5 border-t border-border drawer-safe-bottom">
               {isAuthenticated ? (
                 <button
                   type="button"
@@ -433,10 +429,13 @@ export const PublicLayout: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-6 text-xs text-text-muted">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-text-muted">
               <Link to="/catalog" className="hover:text-cyan-400 transition-colors">Catalog</Link>
               <Link to="/pro" className="hover:text-amber-400 transition-colors">Pachetul PRO</Link>
-              <Link to="/login" className="hover:text-text transition-colors">Autentificare</Link>
+              <Link to="/termeni" className="hover:text-text transition-colors">Termeni și Condiții</Link>
+              <Link to="/confidentialitate" className="hover:text-text transition-colors">Confidențialitate (GDPR)</Link>
+              <Link to="/abonament" className="hover:text-text transition-colors">Politica de Anulare</Link>
+              <Link to="/contact" className="hover:text-text transition-colors">Contact & Firmă</Link>
               <ThemeToggle />
             </div>
           </div>

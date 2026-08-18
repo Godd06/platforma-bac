@@ -216,3 +216,74 @@ export interface Database {
     }
   }
 }
+
+export type QuizQuestionType =
+  | 'single_choice'
+  | 'multiple_choice'
+  | 'true_false_justified'
+  | 'text_matching'
+  | 'fill_in_blank'
+  | 'short_essay_self_eval'
+
+export type ConfidenceLevel = 'high' | 'low'
+
+export interface Quiz {
+  id: string
+  chapter_id: string
+  title: string
+  description: string | null
+  estimated_minutes: number
+  access_level: LessonAccessLevel
+  is_published: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export interface QuizQuestion {
+  id: string
+  quiz_id: string
+  question_type: QuizQuestionType
+  prompt: string
+  options: Record<string, unknown> | null
+  correct_answer?: Record<string, unknown> | null
+  explanation_html: string
+  points: number
+  sort_order: number
+  created_at: string
+}
+
+export interface QuizAttempt {
+  id: string
+  user_id: string
+  quiz_id: string
+  score_obtained: number
+  max_score: number
+  score_percent: number
+  status: 'in_progress' | 'completed' | 'abandoned'
+  started_at: string
+  completed_at: string | null
+}
+
+export interface QuizResponseRecord {
+  id: string
+  attempt_id: string
+  question_id: string
+  user_answer: Record<string, unknown>
+  is_correct: boolean
+  confidence_level: ConfidenceLevel
+  points_awarded: number
+  created_at: string
+}
+
+export interface UserTopicMastery {
+  id: string
+  user_id: string
+  chapter_id: string
+  mastery_percent: number
+  total_attempts: number
+  is_weak_topic: boolean
+  next_review_due: string | null
+  updated_at: string
+}
+

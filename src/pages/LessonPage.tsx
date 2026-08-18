@@ -47,17 +47,20 @@ export const LessonPage: React.FC = () => {
 
   const loadLesson = useCallback(async () => {
     if (!lessonId) return
+    let isMounted = true
     setLoading(true)
     setCompletedSuccess(false)
 
     try {
       // 1. Fetch lesson, blocks & discovery metadata
       const result = await fetchLessonWithBlocks(lessonId)
+      if (!isMounted) return
       setData(result)
 
       // 2. Fetch or initialize progress if accessible
       if (result.accessState === 'ACCESSIBLE') {
         const prog = await getLessonProgress(lessonId)
+        if (!isMounted) return
         setProgress(prog)
 
         // Record lesson start if not yet started
@@ -68,7 +71,9 @@ export const LessonPage: React.FC = () => {
     } catch (err) {
       console.error('[LessonPage] Unexpected fetch error:', err)
     } finally {
-      setLoading(false)
+      if (isMounted) {
+        setLoading(false)
+      }
     }
   }, [lessonId])
 
@@ -76,6 +81,24 @@ export const LessonPage: React.FC = () => {
     loadLesson()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }, [loadLesson])
+
+  // Keyboard navigation shortcuts (Alt + ArrowLeft for previous, Alt + ArrowRight for next)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'ArrowLeft' && data?.prevLesson) {
+        e.preventDefault()
+        navigate(`/lesson/${data.prevLesson.id}`)
+      } else if (e.altKey && e.key === 'ArrowRight' && data?.nextLesson) {
+        e.preventDefault()
+        navigate(`/lesson/${data.nextLesson.id}`)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [data?.prevLesson, data?.nextLesson, navigate])
 
   // Handle Mark Completed action
   const handleMarkCompleted = async () => {

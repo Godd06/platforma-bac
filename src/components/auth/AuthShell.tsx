@@ -15,6 +15,7 @@ import {
 import { PasswordInput } from '@/components/ui/PasswordInput'
 import { PasswordStrength } from '@/components/ui/PasswordStrength'
 import { evaluatePassword } from '@/utils/passwordValidation'
+import { mapAuthError, isValidEmail } from '@/utils/authErrorMapper'
 
 export type AuthMode = 'login' | 'register'
 
@@ -52,8 +53,19 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
   const [regError, setRegError] = useState<string | null>(null)
   const [regSuccess, setRegSuccess] = useState(false)
 
+  // Helper to validate and sanitize internal redirect paths (prevent open-redirect vulnerabilities)
+  const getSanitizedRedirectPath = (rawPath?: string): string => {
+    if (!rawPath || typeof rawPath !== 'string') return '/dashboard'
+    // Must start with '/' and must NOT start with '//' or contain '://' (e.g. http://, javascript:)
+    if (rawPath.startsWith('/') && !rawPath.startsWith('//') && !rawPath.includes('://')) {
+      return rawPath
+    }
+    return '/dashboard'
+  }
+
   // Redirect destination after successful auth
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const rawFromPath = (location.state as { from?: { pathname: string } })?.from?.pathname
+  const from = getSanitizedRedirectPath(rawFromPath)
 
   // If already authenticated, redirect
   useEffect(() => {
@@ -75,18 +87,32 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
   // Handle Login submission
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loginLoading) return
+
     setLoginError(null)
+
+    const cleanEmail = loginEmail.trim()
+    if (!isValidEmail(cleanEmail)) {
+      setLoginError('Te rugăm să introduci una adresă de e-mail validă (ex: elev@liceu.ro).')
+      return
+    }
+
+    if (!loginPassword) {
+      setLoginError('Te rugăm să introduci parola contului.')
+      return
+    }
+
     setLoginLoading(true)
 
     try {
-      const { error: signInError } = await signIn(loginEmail, loginPassword)
+      const { error: signInError } = await signIn(cleanEmail, loginPassword)
       if (signInError) {
-        setLoginError(signInError.message || 'Datele de conectare sunt incorecte.')
+        setLoginError(mapAuthError(signInError.message))
       } else {
         navigate(from, { replace: true })
       }
     } catch (err: unknown) {
-      setLoginError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată.')
+      setLoginError(mapAuthError(err instanceof Error ? err.message : null))
     } finally {
       setLoginLoading(false)
     }
@@ -98,7 +124,20 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (regLoading) return
+
     setRegError(null)
+
+    const cleanEmail = regEmail.trim()
+    if (!isValidEmail(cleanEmail)) {
+      setRegError('Te rugăm să introduci o adresă de e-mail validă (ex: elev@liceu.ro).')
+      return
+    }
+
+    if (!regFullName.trim()) {
+      setRegError('Te rugăm să introduci numele tău complet.')
+      return
+    }
 
     if (!passwordEvaluation.isAllValid) {
       setRegError('Parola trebuie să respecte toate cerințele de securitate de mai jos.')
@@ -113,14 +152,14 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
     setRegLoading(true)
 
     try {
-      const { error: signUpError } = await signUp(regEmail, regPassword, {
+      const { error: signUpError } = await signUp(cleanEmail, regPassword, {
         data: {
           full_name: regFullName.trim(),
         },
       })
 
       if (signUpError) {
-        setRegError(signUpError.message || 'Înregistrarea a eșuat. Verifică datele.')
+        setRegError(mapAuthError(signUpError.message))
       } else {
         setRegSuccess(true)
         setTimeout(() => {
@@ -128,7 +167,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
         }, 1800)
       }
     } catch (err: unknown) {
-      setRegError(err instanceof Error ? err.message : 'A apărut o eroare neașteptată.')
+      setRegError(mapAuthError(err instanceof Error ? err.message : null))
     } finally {
       setRegLoading(false)
     }
