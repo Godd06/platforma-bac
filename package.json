@@ -8,7 +8,7 @@
         "build": "tsc -b && vite build",
         "preview": "vite preview",
         "typecheck": "tsc -b",
-        "test": "pnpm exec tsx src/components/auth/AdminProtectedRoute.test.ts && pnpm exec tsx src/components/auth/AuthHardening.test.ts && pnpm exec tsx src/components/auth/RpcSecurity.test.ts && pnpm exec tsx src/components/auth/SchemaRlsAudit.test.ts && pnpm exec tsx src/components/auth/StorageSecurity.test.ts && pnpm exec tsx src/components/auth/AuthUx.test.ts && pnpm exec tsx src/components/dashboard/DashboardMetrics.test.ts && pnpm exec tsx src/components/catalog/CatalogSecurity.test.ts && pnpm exec tsx src/components/lesson/LessonViewer.test.ts && pnpm exec tsx src/components/admin/cms/LessonBlocksMatrix.test.ts && pnpm exec tsx src/components/admin/cms/RichTextAndHighlights.test.ts && pnpm exec tsx src/components/admin/cms/AdminCmsOperations.test.ts && pnpm exec tsx src/components/admin/cms/LessonStudioStudio.test.ts && pnpm exec tsx src/components/admin/media/MediaLibrary.test.ts && pnpm exec tsx src/components/admin/users/AdminUsersManagement.test.ts && pnpm exec tsx src/components/auth/SubscriptionEntitlement.test.ts && pnpm exec tsx src/components/analytics/AnalyticsTaxonomy.test.ts && pnpm exec tsx src/components/quiz/QuizSystem.test.ts && pnpm exec tsx src/components/ui/DesignSystemPrimitives.test.ts && pnpm exec tsx src/components/auth/AccessibilityAudit.test.ts && pnpm exec tsx src/components/catalog/SeoHelper.test.ts && pnpm exec tsx src/components/ui/ErrorHandlingSystem.test.ts && pnpm exec tsx src/tests/e2e/CriticalFlowsE2E.test.ts && pnpm exec tsx src/utils/Observability.test.ts",
+        "test": "pnpm exec tsx src/tests/runAllTests.ts",
         "test:e2e": "playwright test"
     },
     "dependencies": {
