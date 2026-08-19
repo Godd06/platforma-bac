@@ -27,18 +27,17 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Step 1: Typecheck (tsc -b)
+      - name: "Step 1: Typecheck"
         run: pnpm run typecheck
 
-      - name: Step 2: Test Suite (23 Test Suites / 115 Scenarios)
+      - name: "Step 2: Test Suite"
         env:
           VITE_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL || 'https://staging-mock.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY || 'staging-anon-key-placeholder' }}
         run: pnpm run test
 
-      - name: Step 3: Production Build (vite build)
+      - name: "Step 3: Production Build"
         env:
           VITE_SUPABASE_URL: ${{ secrets.PRODUCTION_SUPABASE_URL || 'https://platforma-bac.supabase.co' }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.PRODUCTION_SUPABASE_ANON_KEY || 'prod-anon-key-placeholder' }}
         run: pnpm run build
-
