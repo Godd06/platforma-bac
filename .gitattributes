@@ -1,0 +1,10 @@
+# Enforce LF line endings for pnpm lockfile and code files across all operating systems
+pnpm-lock.yaml text eol=lf
+package.json text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
