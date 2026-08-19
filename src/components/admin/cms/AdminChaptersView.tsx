@@ -54,7 +54,7 @@ export const AdminChaptersView: React.FC<AdminChaptersViewProps> = ({
   const [sortOrder, setSortOrder] = useState(0)
   const [saving, setSaving] = useState(false)
 
-  const isRomana = subject.slug === 'limba-romana'
+  const isRomana = subject.slug === 'romana' || subject.slug === 'limba-romana'
 
   const handleStartEdit = (chap: Chapter) => {
     setInlineEditingChapterId(chap.id)

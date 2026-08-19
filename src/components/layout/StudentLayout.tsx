@@ -63,7 +63,7 @@ export const StudentLayout: React.FC = () => {
     (user?.email ? user.email.split('@')[0] : 'Elev')
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-text selection:bg-cyan-500/20 selection:text-cyan-300 relative">
+    <div className="min-h-screen flex flex-col bg-background text-text selection:bg-cyan-500/20 selection:text-cyan-300 relative overflow-x-clip">
       {/* Skip to Content for Accessibility */}
       <a
         href="#main-content"
@@ -80,7 +80,7 @@ export const StudentLayout: React.FC = () => {
             : 'bg-background/85 backdrop-blur-xl border-b border-border/50'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between gap-3 sm:gap-6">
           {/* Brand Logo */}
           <Link
             to="/dashboard"
@@ -100,7 +100,7 @@ export const StudentLayout: React.FC = () => {
           </Link>
 
           {/* Desktop Navigation Links — Luxury Segmented Pill Bar */}
-          <nav className="hidden md:flex items-center p-1.5 rounded-2xl glass-elevated border border-border/80 shadow-subtle gap-1" aria-label="Navigare Principală">
+          <nav className="hidden lg:flex items-center p-1.5 rounded-2xl glass-elevated border border-border/80 shadow-subtle gap-1" aria-label="Navigare Principală">
             <NavLink
               to="/dashboard"
               className={({ isActive }) =>
@@ -145,7 +145,7 @@ export const StudentLayout: React.FC = () => {
           </nav>
 
           {/* Desktop Auth/User CTAs + ThemeToggle */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <CommandPalette />
             <ThemeToggle />
 
@@ -195,7 +195,7 @@ export const StudentLayout: React.FC = () => {
             aria-expanded={mobileMenuOpen}
             aria-controls="student-mobile-drawer"
             aria-label={mobileMenuOpen ? 'Închide meniul principal' : 'Deschide meniul principal'}
-            className="md:hidden w-11 h-11 flex items-center justify-center rounded-2xl text-text-muted hover:text-text bg-surface border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-subtle"
+            className="lg:hidden w-11 h-11 flex items-center justify-center rounded-2xl text-text-muted hover:text-text bg-surface border border-border focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 shadow-subtle"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>

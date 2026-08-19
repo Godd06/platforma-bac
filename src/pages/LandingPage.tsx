@@ -53,7 +53,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Perspectivă narativă dindărăt', 'Simetrie incipit-final (Drumul spre Pripas)', 'Tehnica planurilor paralele'],
       quote: '„Glasul pământului pătrundea în sufletul flăcăului ca o chemare din altă lume.”',
       quoteInsight: 'Simbolizează obsesia atavică a personajului pentru posesia pământului.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
     {
       id: 'moara',
@@ -65,7 +65,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Conflict interior & moral', 'Dezumanizarea treptată prin patima banilor', 'Avertismentul bătrânei (Teza morală)'],
       quote: '„Omul să fie mulțumit cu sărăcia sa, căci dacă e vorba, nu bogăția, ci liniștea colibei tale te face fericit.”',
       quoteInsight: 'Rostit de bătrână, sintetizează destinul tragic generat de încălcarea normelor etice.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
     {
       id: 'luceafarul',
@@ -77,7 +77,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Antiteza om de geniu vs. om comun', 'Motive romantice: noaptea, steaua, marea', 'Metamorfozele Hyperionice'],
       quote: '„Trăind în cercul vostru strâmt / Norocul vă petrece, / Ci eu în lumea mea mă simt / Nemuritor și rece.”',
       quoteInsight: 'Expresie a izolării orgolioase și a conștientizării condiției superioare a geniului.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
     {
       id: 'plumb',
@@ -89,7 +89,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Laitmotivul cromatic și mineral (Plumb)', 'Senzația de claustrare existențială', 'Sincronizarea stării sufletești cu decorul funerar'],
       quote: '„Dormeau adânc sicriele de plumb, / Și flori de plumb și funerar veșmânt...”',
       quoteInsight: 'Creează o atmosferă de apăsare ireversibilă și descompunere a materiei.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
     {
       id: 'caragiale',
@@ -101,7 +101,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Comicul de caracter, limbaj și situație', 'Triunghiul conjugal burghez', 'Șantajul politic ca motor al intrigii'],
       quote: '„Industria română e admirabilă, e sublimă putem zice, dar lipsește cu desăvârșire.”',
       quoteInsight: 'Incoerența discursivă a lui Farfuridi demască impostura politică.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
     {
       id: 'testament',
@@ -113,7 +113,7 @@ export const LandingPage: React.FC = () => {
       keyConcepts: ['Estetica urâtului', 'Transfigurarea meșteșugului în slovă făurită', 'Datoria morală față de strămoși'],
       quote: '„Din bube, mucegaiuri și noroi / Iscat-am frumuseți și prețuri noi.”',
       quoteInsight: 'Manifestul arghezian prin care orice element al realității poate deveni materie poetică.',
-      targetUrl: '/catalog/limba-romana',
+      targetUrl: '/catalog/romana',
     },
   ]
 

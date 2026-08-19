@@ -4,6 +4,12 @@ import {
   ShieldCheck,
   LayoutDashboard,
   BookOpen,
+  Image,
+  Users,
+  BarChart3,
+  HelpCircle,
+  CreditCard,
+  Settings,
   ArrowLeft,
   LogOut,
   Menu,
@@ -50,7 +56,7 @@ export const AdminLayout: React.FC = () => {
     (user?.email ? user.email.split('@')[0] : 'Administrator')
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
-    <div className="h-full flex flex-col justify-between bg-sidebar border-r border-border p-5 select-none">
+    <div className="h-full flex flex-col justify-between bg-sidebar border-r border-border p-5 select-none overflow-y-auto">
       <div className="space-y-6">
         {/* Brand Header */}
         <div className="flex items-center justify-between px-1 pt-1 pb-1">
@@ -86,7 +92,7 @@ export const AdminLayout: React.FC = () => {
 
         {/* Navigation Section */}
         <div className="space-y-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <span className="text-[10px] font-bold text-text-subtle uppercase tracking-wider px-3.5">
               Gestiune Conținut
             </span>
@@ -96,7 +102,7 @@ export const AdminLayout: React.FC = () => {
                 end
                 onClick={onNavigate}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
                     isActive
                       ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
@@ -118,7 +124,7 @@ export const AdminLayout: React.FC = () => {
                 to="/admin/content"
                 onClick={onNavigate}
                 className={({ isActive }) =>
-                  `relative flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[44px] ${
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
                     isActive
                       ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
                       : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
@@ -132,6 +138,145 @@ export const AdminLayout: React.FC = () => {
                     )}
                     <BookOpen className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
                     <span>Curriculum & Lecții</span>
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/admin/media"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <Image className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Bibliotecă Media</span>
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/admin/quizzes"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <HelpCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Quiz-uri & Teste</span>
+                  </>
+                )}
+              </NavLink>
+            </nav>
+          </div>
+
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-text-subtle uppercase tracking-wider px-3.5">
+              Administrare & Sistem
+            </span>
+            <nav className="space-y-1 pt-1">
+              <NavLink
+                to="/admin/users"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <Users className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Utilizatori & Roluri</span>
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/admin/analytics"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <BarChart3 className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Analytics & Telemetrie</span>
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/admin/subscriptions"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <CreditCard className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Abonamente PRO</span>
+                  </>
+                )}
+              </NavLink>
+
+              <NavLink
+                to="/admin/settings"
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  `relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-semibold transition-all min-h-[40px] ${
+                    isActive
+                      ? 'bg-surface-active text-amber-800 dark:text-amber-300 font-bold border border-amber-500/30 shadow-subtle'
+                      : 'text-text-muted hover:text-text hover:bg-surface-elevated/50'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    {isActive && (
+                      <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-amber-500" />
+                    )}
+                    <Settings className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Setări Sistem</span>
                   </>
                 )}
               </NavLink>

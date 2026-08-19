@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
@@ -99,7 +99,7 @@ export const App: React.FC = () => {
           <SmartScrollRestoration />
           <Suspense fallback={<PageFallback />}>
             <Routes>
-              {/* Public Routes */}
+              {/* Public Discovery (PublicLayout) */}
               <Route element={<PublicLayout />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<LoginPage />} />
@@ -107,33 +107,43 @@ export const App: React.FC = () => {
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/pro" element={<ProUpgradePage />} />
-                <Route path="/termeni" element={<TermsPage />} />
-                <Route path="/confidentialitate" element={<PrivacyPage />} />
-                <Route path="/abonament" element={<SubscriptionTermsPage />} />
+                <Route path="/terms" element={<TermsPage />} />
+                <Route path="/privacy" element={<PrivacyPage />} />
+                <Route path="/subscription-terms" element={<SubscriptionTermsPage />} />
                 <Route path="/contact" element={<ContactPage />} />
+
+                {/* Legacy Romanian Legal Route Aliases */}
+                <Route path="/termeni" element={<Navigate to="/terms" replace />} />
+                <Route path="/confidentialitate" element={<Navigate to="/privacy" replace />} />
+                <Route path="/abonament" element={<Navigate to="/subscription-terms" replace />} />
               </Route>
 
-              {/* Protected Student Routes */}
+              {/* Student & Learning Environment (StudentLayout) */}
               <Route element={<ProtectedRoute />}>
                 <Route element={<StudentLayout />}>
+                  <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/catalog" element={<CatalogPage />} />
                   <Route path="/catalog/:subject" element={<SubjectPage />} />
+                  <Route path="/catalog/:subject/:chapter" element={<SubjectPage />} />
                   <Route path="/lesson/:lessonId" element={<LessonPage />} />
-                  <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Route>
               </Route>
 
-              {/* Protected Staff / Admin Routes */}
+              {/* Admin CMS (AdminProtectedRoute + AdminLayout) */}
               <Route element={<AdminProtectedRoute />}>
                 <Route element={<AdminLayout />}>
                   <Route path="/admin" element={<AdminDashboardPage />} />
                   <Route path="/admin/content" element={<AdminContentPage />} />
+                  <Route path="/admin/content/:subjectSlug" element={<AdminContentPage />} />
+                  <Route path="/admin/content/:subjectSlug/:chapterSlug" element={<AdminContentPage />} />
+                  <Route path="/admin/content/:subjectSlug/:chapterSlug/:lessonSlug" element={<AdminContentPage />} />
+                  <Route path="/admin/editor/:lessonId" element={<AdminContentPage />} />
                   <Route path="/admin/media" element={<AdminMediaPage />} />
-                  <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
                   <Route path="/admin/users" element={<AdminUsersPage />} />
-                  <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
                   <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+                  <Route path="/admin/quizzes" element={<AdminQuizzesPage />} />
+                  <Route path="/admin/subscriptions" element={<AdminSubscriptionsPage />} />
                   <Route path="/admin/settings" element={<AdminSettingsPage />} />
                 </Route>
               </Route>

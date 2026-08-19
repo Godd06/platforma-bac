@@ -207,7 +207,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
   showSymbols = true,
 }) => {
   return (
-    <div className={`relative min-h-full w-full overflow-hidden ${className}`}>
+    <div className={`relative min-h-full w-full overflow-hidden overflow-x-clip ${className}`}>
       {/* LAYER 0: Architectural Fine Mesh / Dot Canvas */}
       <div className="ambient-grid-pattern" aria-hidden="true" />
 
@@ -274,7 +274,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       {/* LAYER 2 & 3: Floating Educational Academic Line-Art & Typographic Symbols */}
       {showSymbols && (
         <div
-          className="pointer-events-none select-none absolute inset-0 z-0 overflow-hidden"
+          className="pointer-events-none select-none absolute inset-0 z-0 overflow-hidden overflow-x-clip"
           aria-hidden="true"
         >
           {/* ==========================================================

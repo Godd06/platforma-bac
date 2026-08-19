@@ -113,10 +113,14 @@ export const InlineBlockEditor: React.FC<InlineBlockEditorProps> = ({
             <option value="rich_text">¶ — Paragraf / Text Vizual</option>
             <option value="heading">H — Titlu / Reper Barem</option>
             <option value="important">⚠️ — Atenție la Barem</option>
-            <option value="remember">💡 — De Reținut / Citat</option>
+            <option value="remember">💡 — De Reținut / Notă</option>
             <option value="definition">📖 — Definiție / Concept</option>
             <option value="summary">🎯 — Sinteză / Puncte Cheie</option>
             <option value="image">🖼️ — Imagine / Ilustrație</option>
+            <option value="video">🎬 — Video Embed</option>
+            <option value="audio">🎧 — Audio Player / Narațiune</option>
+            <option value="file_download">📥 — Fișier / Descărcare PDF</option>
+            <option value="quote">💬 — Citat / Fragment Textual</option>
           </select>
 
           {/* Raw JSON toggle */}

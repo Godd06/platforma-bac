@@ -195,7 +195,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
               isLogin ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             // @ts-ignore inert standard attribute
-            inert={!isLogin ? '' : undefined}
+            inert={!isLogin || undefined}
             aria-hidden={!isLogin}
           >
             <div className="space-y-6">
@@ -297,7 +297,7 @@ export const AuthShell: React.FC<AuthShellProps> = ({ initialMode = 'login' }) =
               !isLogin ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
             // @ts-ignore inert standard attribute
-            inert={isLogin ? '' : undefined}
+            inert={isLogin || undefined}
             aria-hidden={isLogin}
           >
             {regSuccess ? (
