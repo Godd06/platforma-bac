@@ -1,4 +1,4 @@
-﻿name: Platforma Bac CI Pipeline
+name: Platforma Bac CI Pipeline
 
 on:
   push:
@@ -15,15 +15,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 11.21.0
+          cache: 'pnpm'
 
       - name: Get pnpm store directory
         id: pnpm-cache
